@@ -1,0 +1,105 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 0;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.stat {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.refresh {
+  margin-left: auto;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--dsh-border, #d0d7de);
+  background: transparent;
+  cursor: pointer;
+}
+
+.canvas {
+  width: 100%;
+  height: auto;
+  background: var(--dsh-canvas-bg, #fafbfc);
+  border: 1px solid var(--dsh-border, #d0d7de);
+  border-radius: 8px;
+}
+
+.edge {
+  fill: none;
+  stroke: #9aa4b2;
+  stroke-width: 1;
+}
+
+.edgeContains {
+  stroke-dasharray: 3 3;
+  stroke: #b0b8c4;
+}
+
+.edgeLit {
+  stroke: #2f6feb;
+  stroke-width: 2;
+}
+
+.edgeDim {
+  opacity: 0.2;
+}
+
+.node {
+  cursor: pointer;
+}
+
+.nodeFocus rect {
+  stroke: #2f6feb;
+  stroke-width: 2;
+}
+
+.nodeActive { fill: #d6f0d6; }
+.nodeFailed { fill: #f6d6d6; }
+.nodePending { fill: #f6efd6; }
+.nodeIdle { fill: #eceff3; }
+.nodeService { fill: #e3e9f5; }
+
+.label {
+  font-size: 11px;
+  fill: #1f2328;
+  pointer-events: none;
+}
+
+.badge {
+  font-size: 11px;
+  fill: #4a5568;
+  pointer-events: none;
+}
+
+.error {
+  color: #c0392b;
+  font-size: 13px;
+}
+
+.empty {
+  opacity: 0.6;
+  font-size: 13px;
+}
+
+.legend {
+  display: flex;
+  gap: 16px;
+  font-size: 11px;
+  opacity: 0.75;
+}

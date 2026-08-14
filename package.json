@@ -1,0 +1,18 @@
+{
+  "name": "ai-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ai-bridge ecosystem — plugins and tooling for DeepSeek Harness (dsh) and AI coding orchestration",
+  "workspaces": [
+    "packages/*"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "pnpm -r build",
+    "verify:topology": "node --import tsx packages/topology/verify-runtime.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "packageManager": "pnpm@9.0.0"
+}

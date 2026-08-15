@@ -1,114 +1,66 @@
-# @deepseek-ai/dsh-contrib-topology
+# @ai-bridge/topology
 
-**实时 Cordis 插件依赖拓扑图** —— 把正在运行的 Loader 投影成一张 SVG 依赖图，
-在 `Settings → Plugins` 里以一个 tab 呈现（插件节点 / service 枢纽 / injects 边 /
-contains 边 / parent 链 / fiber phase 状态）。
+DeepSeek Harness (dsh) Web UI 的**运行态插件依赖拓扑图**。
 
-这是把 `ai-bridge` 理念（「插件化 + 可视化」）先作为 **P2 可视化探针** 插进
-DeepSeek Harness（dsh）的落点，用于借 DP 之势占「拓扑可视化」话题位。
+dsh 自带的能力：静态 Mermaid 图（文档生成）+ 只读插件清单（扁平列表）。
+本插件补的空位：**实时、可交互的插件 × 服务二分拓扑图**——谁 inject 了谁、谁在运行、谁失败，一眼可见。
 
----
+## 功能
 
-## 架构（dual-face 单包）
+- 左列：插件节点（`contains` 边缩进展示父子层级），按 fiber 阶段着色（active 绿 / failed 红 / pending 黄），并按来源分区（core / contrib / third-party，带分区标题）
+- 右列：服务枢纽节点（`ctx.*` 键），角标显示消费者数量
+- 连线：`injects` 边（插件→服务）+ `contains` 边（父插件→子插件，虚线）；disabled 插件的 `injects` 边以黄色虚线呈现
+- 交互：悬停高亮关联边，点击钉选，一键刷新
+- 挂载点：Settings → Plugins → 「拓扑」tab（与官方 inventory tab 并列）
 
-| 面 | 入口 | 产物 | 职责 |
-|---|---|---|---|
-| **Host** | `src/host/index.ts` | `lib/index.js` + `lib/typert.host.js` + `lib/typert.remote-client.js` | `TopologyGateway extends TypertRemoteService`，暴露 `graph()` Remote 方法，读 `ctx.loader.entries()` 投影成 `TopologySnapshot` |
-| **Client** | `src/client/index.ts` | `lib/client.js` | 注册 `settings.plugins.tab` 槽位，渲染 `TopologyTab.tsx`（SVG）|
+## 数据来源
 
-`graph()` 返回 `TopologySnapshot`：
-- `nodes`: plugin 节点（含 `fiberPhase`/`enabled`/`injects`/`parentId`）+ service 枢纽节点（`consumerCount`）
-- `edges`: `injects`（plugin→service）/ `contains`（parent→child）
+与 dsh 官方 `pluginInventory` 同一真源：`ctx.loader.entries()`，每次调用直读、无缓存。
+边从两个维度构建：
 
----
+| 边 | 来源 |
+|---|---|
+| `injects` | 插件 fiber 的 `inject` 声明（服务键 → 服务枢纽）；disabled 插件无 fiber 时回退到配置级 `options.inject` |
+| `contains` | fiber parent 链回溯匹配 loader 条目（best-effort，失败则降级为平铺） |
 
-## 已完成的集成接线（首次接入第三方插件的三处必改）
+## 结构
 
-1. **根 `tsconfig.host.json`** 与 **根 `tsconfig.client.json`** 的 `references`
-   各加一条指向本包（`host` 指向 `packages/contrib/topology`，`client` 指向
-   `packages/contrib/topology/tsconfig.client.json`）。
-
-2. **`packages/api/remotes`** 的 `package.json` 必须声明本包为
-   `peerDependencies` + `devDependencies`（否则 pnpm 不会把它软链进
-   `node_modules`，远程聚合 `TypertClientRemote` 找不到 `topology`）。
-   然后在 `packages/api/remotes/src/client/index.ts` 里 import 并加入
-   `contribution` 列表，使 `ctx.remote.topology` 类型可被解析。
-
-3. **`packages/bundle/web-app/cordis.patch.yml`** 的浏览器插件花名册加一条：
-   ```yaml
-   - id: topology
-     name: '@deepseek-ai/dsh-contrib-topology'
-   ```
-   > 关键认知：web 不会自动扫描打包客户端插件，**每张浏览器插件必须显式进
-   > 这张花名册**，loader 才会在 host 组合加载 host 面、client 组合加载 client 面。
-   > 缺这条 = 「编译过但 UI 看不到 Tab」。
-
-### 额外补丁（本包自身）
-- `tsdown.config.ts`：用 `clientBundle(...)` 预设产出 `lib/client.js`
-  （未加此文件则全仓库都没有 `lib/client.js`，花名册条目加载会 404）。
-- Host / client 两面都 `include src/types.ts` 并各配独立 `tsBuildInfoFile`，
-  避免 `lib/types/types.d.ts` 互覆盖触发 **TS5055**（删掉 host 已发的
-  `types.d.ts` 让 client 先发即可解）。
-
----
-
-## 本地验收
-
-### ① CLI 运行态验证（已通过，可复跑）
-证明 host `graph()` 真的把 Loader 投影成正确的二分图，不需要浏览器：
-
-```bash
-cd deepseek-harness
-node --import tsx packages/contrib/topology/verify-runtime.ts
+```
+plugins/topology/
+├── src/
+│   ├── types.ts                # TopologySnapshot 契约（host/client 共享）
+│   ├── index.ts                # host 插件入口（TopologyGateway 类即插件）
+│   ├── host/index.ts           # TopologyGateway extends TypertRemoteService
+│   └── client/
+│       ├── index.ts            # apply()：注册 settings.plugins.tab
+│       ├── TopologyTab.tsx     # 纯 SVG 图渲染，零外部依赖
+│       ├── TopologyTab.module.css
+│       └── locales.ts          # 中英双语
+├── package.json
+└── tsconfig.json
 ```
 
-预期：15 项断言全绿，末尾打印
-`✅ TopologyGateway.graph() runtime verification PASSED`。
+## 开发接线（当前唯一需要手动的部分）
 
-覆盖：group 条目跳过 / injects→service 枢纽+边 / parent 链→contains 边 /
-fiber phase 映射 / disabled→`enabled:false`。
+dsh 的 Remote 面孔由 typert 代码生成。官方聚合在 `@deepseek-ai/dsh-api-remotes`
+里显式组装，但**这不是唯一路径**：`ctx.remote.$mount(contribution)` 是公开方法，
+第三方 client face 可以 import 自己生成的 `/remote` 产物并自行 `$mount`，
+无需改核心聚合（详见 dsh Discussions #1565 评论）。开发期两种接法：
 
-### ② 构建客户端 bundle（已通过）
-```bash
-cd packages/contrib/topology
-node "<repo>/node_modules/.pnpm/tsdown@0.22.2_.../node_modules/tsdown/dist/run.mjs" \
-  --env.DSH_BUILD_FACE client
-```
-> 注意：必须用**根** tsdown@0.22.2，不要 `pnpm exec`（本包自带旧版 tsdown@0.1.1
-> 不支持 `--env`）；也不要加 `--import tsx`（与 tsdown 自身 loader hook 冲突）。
-> 预期产出 `lib/client.js`(~13kB) 与 `lib/index.js`，**purity gate 无报错**。
+1. 把本包软链/拷贝进 `deepseek-harness/packages/`（如 `packages/community/topology`）
+2. 在 `packages/api/remotes/src/client/index.ts` 的 assembly 中加入
+   `topologyRemote`（import 自本包的 `/remote` 构建产物）
+3. 跑 dsh 的构建（typert codegen 生成 `lib/typert.host.js` 与
+   `lib/typert.remote-client.js`）
+4. `pnpm dsh web` 启动 → Settings → Plugins → 拓扑
 
-### ③ 全量 build + 浏览器出图（需你本地做这一步）
-CLI 无法点浏览器，以下在你本机验收 P2 闭环：
+> 纯 UI 插件（无 Remote）可以走官方 patch 层免改核心（`$DSH_HOME/cordis.patch.yml`
+> 或 `--patch`）；带 Host Remote 的插件也可由客户端自挂载走免改核心路径。
+> 我们已在 dsh Discussions（#1565）实测并给出结论，帖子正文待同步。
 
-```bash
-cd deepseek-harness
-pnpm install
-pnpm build          # = build:lib + build:web（若撞 os error 5 见下，重试即可）
-pnpm dev:web        # 或 build:web 后 dsh web
-```
+## 路线图
 
-打开 `http://localhost:3080` → **Settings → Plugins → Topology**，
-应看到一张实时 SVG 依赖图（节点颜色随 fiber phase 变化，service 枢纽显示
-consumer 数量，contains/injects 边可见）。
-
----
-
-## 环境坑（与插件代码无关，已在 Windows 本机确认）
-
-- **整库 `pnpm build:lib` flaky**：rolldown 70+ 包并行写盘时，随机某个包的
-  `lib/*.js` 被 Windows 拒访（`os error 5` / 「拒绝访问」）。首次 `fs-sandbox`、
-  二次 `subagent-spawn-in-process` 都属此类，**与拓扑插件无关**（本包隔离构建
-  干净通过）。疑似 Windows Defender / 文件锁对并行新写 .js 的拦截。
-  解法：直接重跑 `pnpm build:lib`；或按②只重建单个包。
-- 整库 build 失败时其他 client bundle 还没产出，不影响本包产物完整性。
-
----
-
-## 已知限制 / 后续
-- 浏览器里的真实出图尚未在 CI/CLI 跑过，仅逻辑与打包层面验证。
-- 接入方式目前依赖 monorepo 改造（三处必改 + remotes 注册），尚未走
-  「纯 UI 插件免改核心」的 `cordis.yml` patch 路径（带 Host Remote 的插件
-  必须进 monorepo 构建，见 roadmap）。
-- 下一步：P0（GitHub 镜像 + npm 占位 + dsh Discussions 首帖，首帖即用本插件的
-  接入踩坑笔记）；P3（把 ai-bridge 编排逻辑移植成 dsh 插件）。
+- [x] v0.0.1 骨架：二分图 + 阶段着色 + 交互高亮
+- [ ] v0.1 实时化：订阅 Cordis 插件加载/卸载事件，图自动增量更新（免手动刷新）
+- [ ] v0.2 力导向布局 + 缩放/平移
+- [ ] v0.3 与 `@ai-bridge/orchestrator` 联动：编排任务实时流向叠加到拓扑图上

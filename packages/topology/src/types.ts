@@ -9,14 +9,29 @@ export type TopologyFiberPhase =
   | 'unloading'
   | null
 
+/**
+ * Plugin origin bucket, derived from the package name so the client can
+ * partition the graph instead of flattening every plugin into one column.
+ * `core` = first-party `@deepseek-ai/dsh-*` packages (excluding contrib),
+ * `contrib` = `@deepseek-ai/dsh-contrib-*`, `third-party` = everything else.
+ */
+export type TopologyPluginGroup = 'core' | 'contrib' | 'third-party'
+
 /** A plugin node: one non-group Cordis Loader entry. */
 export interface TopologyPluginNode {
   readonly id: string
   /** Module specifier / display name of the plugin. */
   readonly name: string
+  /** Origin bucket derived from the package name. */
+  readonly group: TopologyPluginGroup
   readonly enabled: boolean
   readonly fiberPhase: TopologyFiberPhase
-  /** Service keys this plugin declares via static inject (best-effort). */
+  /**
+   * Service keys this plugin declares via static inject (best-effort).
+   * Reads the live fiber's inject dict; for disabled entries (no fiber) falls
+   * back to the config-level `options.inject` declaration so a disabled plugin
+   * still shows what it would have wired.
+   */
   readonly injects: readonly string[]
   /**
    * Parent plugin id when resolvable from the fiber parent chain

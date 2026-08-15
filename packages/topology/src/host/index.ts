@@ -24,6 +24,7 @@ import type {
   TopologyEdge,
   TopologyFiberPhase,
   TopologyNode,
+  TopologyPluginGroup,
   TopologyPluginNode,
   TopologySnapshot,
 } from '../types.ts'
@@ -53,7 +54,12 @@ const FIBER_PHASE = {
 interface LoaderEntryLike {
   id: string
   disabled?: boolean
-  options: { name?: string; group?: boolean }
+  options: {
+    name?: string
+    group?: boolean
+    /** Config-level inject declaration (serialized in the loader config). */
+    inject?: Record<string, unknown> | string[] | null
+  }
   fiber?: {
     state: FiberState
     /** Static inject declarations: service key → config. */
@@ -63,14 +69,37 @@ interface LoaderEntryLike {
   }
 }
 
+/** Origin bucket from the package name: core / contrib / third-party. */
+function groupOf(name: string): TopologyPluginGroup {
+  if (name.startsWith('@deepseek-ai/dsh-contrib-')) return 'contrib'
+  if (name.startsWith('@deepseek-ai/')) return 'core'
+  return 'third-party'
+}
+
 function readInjectKeys(entry: LoaderEntryLike): string[] {
+  // Live fiber wins; a disabled entry has no fiber, so fall back to the
+  // config-level options.inject declaration to still show what it wires.
   try {
-    const inject = entry.fiber?.inject
-    if (!inject || typeof inject !== 'object') return []
-    return Object.keys(inject).filter((k) => typeof k === 'string' && k.length > 0)
+    const fiberInject = entry.fiber?.inject
+    if (fiberInject && typeof fiberInject === 'object') {
+      return Object.keys(fiberInject).filter((k) => typeof k === 'string' && k.length > 0)
+    }
   } catch {
-    return []
+    // fall through to the config-level declaration below
   }
+  try {
+    const configInject = entry.options.inject
+    if (configInject == null) return []
+    if (Array.isArray(configInject)) {
+      return configInject.filter((k) => typeof k === 'string' && k.length > 0)
+    }
+    if (typeof configInject === 'object') {
+      return Object.keys(configInject).filter((k) => typeof k === 'string' && k.length > 0)
+    }
+  } catch {
+    // contained by design
+  }
+  return []
 }
 
 /**
@@ -112,9 +141,11 @@ export class TopologyGateway extends TypertRemoteService {
 
     const plugins: TopologyPluginNode[] = entries.map((entry) => {
       const parentId = readParentId(entry, entries)
+      const name = entry.options.name ?? entry.id
       return {
         id: entry.id,
-        name: entry.options.name ?? entry.id,
+        name,
+        group: groupOf(name),
         enabled: !entry.disabled,
         fiberPhase: entry.fiber === undefined ? null : FIBER_PHASE[entry.fiber.state],
         injects: readInjectKeys(entry),

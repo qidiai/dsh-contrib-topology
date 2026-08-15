@@ -51,6 +51,12 @@
   stroke: #b0b8c4;
 }
 
+/* A disabled plugin still declares injects; its edges render dashed. */
+.edgeDisabled {
+  stroke-dasharray: 5 3;
+  stroke: #c9a227;
+}
+
 .edgeLit {
   stroke: #2f6feb;
   stroke-width: 2;
@@ -58,6 +64,23 @@
 
 .edgeDim {
   opacity: 0.2;
+}
+
+/* Group partition header row (core / contrib / third-party). */
+.groupHeader {
+  font-size: 12px;
+  font-weight: 600;
+  fill: #57606a;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+/* Contains-depth marker for child plugins. */
+.depth {
+  font-size: 11px;
+  fill: #8a94a0;
+  pointer-events: none;
 }
 
 .node {

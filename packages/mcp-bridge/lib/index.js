@@ -193,6 +193,7 @@ let McpBridgeGateway = (() => {
 		config = DEFAULT_CONFIG;
 		constructor(ctx) {
 			super(ctx, "mcp-bridge");
+			this.ensureTools();
 			installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
 				setSource: (source) => {
 					this.config = source();
@@ -202,6 +203,13 @@ let McpBridgeGateway = (() => {
 					this.applyConfig();
 				}
 			});
+		}
+		/** Re-register the `tools` service locally when it is available upstream. */
+		ensureTools() {
+			try {
+				const tools = this.ctx.get("tools");
+				if (tools !== void 0) this.ctx.provide("tools", tools);
+			} catch {}
 		}
 		/** Diff the resolved config against live instances; spawn/remove as needed. */
 		async applyConfig() {

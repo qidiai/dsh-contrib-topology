@@ -100,7 +100,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorSnapshot',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_snapshot_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":166,"column":3},
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":168,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-orchestrator#orchestrator/stats',
@@ -115,7 +115,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorStats',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_stats_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":154,"column":3},
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":156,"column":3},
     },
   ],
   model: {

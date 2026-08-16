@@ -210,7 +210,6 @@ let McpBridgeGateway = (() => {
 			installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
 				setSource: (source) => {
 					this.config = source();
-					this.applyConfig();
 				},
 				onChange: () => {
 					this.applyConfig();
@@ -331,21 +330,33 @@ let McpBridgeGateway = (() => {
 			} catch {}
 			return counts;
 		}
-		/** Add one server at runtime (settings diff drives the actual spawn). */
+		/** Add one server at runtime (persisted via the ai-bridge-mcp settings). */
 		async addServer(server) {
 			const existing = this.registry.get(server.serverName);
 			if (existing !== void 0 && existing.status !== "failed") throw new Error(`mcp-bridge: serverName "${server.serverName}" already managed`);
 			if (existing !== void 0) this.registry.remove(server.serverName);
 			const next = { servers: [...this.config.servers.filter((s) => s.serverName !== server.serverName), server] };
-			this.config = next;
-			await this.applyConfig();
+			await this.persistConfig(next);
 			return this.snapshot();
 		}
-		/** Remove one server at runtime. */
-		removeServer(serverName) {
-			this.config = { servers: this.config.servers.filter((s) => s.serverName !== serverName) };
-			this.registry.remove(serverName);
+		/** Remove one server at runtime (persisted via the ai-bridge-mcp settings). */
+		async removeServer(serverName) {
+			const next = { servers: this.config.servers.filter((s) => s.serverName !== serverName) };
+			await this.persistConfig(next);
 			return this.snapshot();
+		}
+		/**
+		* Persist a full config through the `ai-bridge-mcp` settings channel so a
+		* restart re-attaches the servers, then apply the live diff. Falls back to
+		* in-memory-only when the settings service is unavailable.
+		*/
+		async persistConfig(next) {
+			try {
+				const settings = this.ctx.get("settings");
+				if (settings?.update !== void 0) await settings.update(NS, { servers: next.servers });
+			} catch {}
+			this.config = next;
+			await this.applyConfig();
 		}
 	};
 })();

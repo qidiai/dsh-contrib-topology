@@ -5,7 +5,7 @@ const _deepseek_ai_dsh_contrib_observe_observe_clear_result$schema = z.void()
 const _deepseek_ai_dsh_contrib_observe_observe_snapshot_result$schema = z.object({
   'events': z.array(z.object({
   'id': z.string().readonly(),
-  'kind': z.union([z.literal("tool.call"), z.literal("llm.stream")]).readonly(),
+  'kind': z.union([z.literal("tool.call"), z.literal("llm.stream"), z.literal("subagent.dispatch")]).readonly(),
   'name': z.string().readonly(),
   'agent': z.string().readonly().optional(),
   'startedAt': z.string().readonly(),
@@ -73,7 +73,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-observe#observe/clear:result',
         schema: _deepseek_ai_dsh_contrib_observe_observe_clear_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":212,"column":3},
+      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":245,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-observe#observe/snapshot',
@@ -88,7 +88,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-observe/types#ObserveSnapshot',
         schema: _deepseek_ai_dsh_contrib_observe_observe_snapshot_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":200,"column":3},
+      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":233,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-observe#observe/stats',
@@ -103,7 +103,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-observe/types#ObserveStats',
         schema: _deepseek_ai_dsh_contrib_observe_observe_stats_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":206,"column":3},
+      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":239,"column":3},
     },
   ],
 }

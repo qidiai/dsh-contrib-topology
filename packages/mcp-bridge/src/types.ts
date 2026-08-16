@@ -42,3 +42,16 @@ export interface BridgeSnapshot {
 export interface McpBridgeConfig {
   readonly servers: readonly McpServerConfig[]
 }
+
+/** Diagnostic snapshot of tools-service visibility (debugging the inject realm). */
+export interface BridgeProbe {
+  readonly hasToolsIn: boolean
+  readonly getTools: string
+  readonly propsKeys: readonly string[]
+  readonly hasToolsProp: boolean
+  readonly provideOutcome: string
+  readonly postHasToolsProp: boolean
+  readonly fiberRuntime: string
+  readonly extendChildGetTools: string
+  readonly extendChildHasToolsIn: boolean
+}

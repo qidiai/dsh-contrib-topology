@@ -49,15 +49,37 @@ export interface TopologyServiceNode {
   readonly consumerCount: number
 }
 
+/** A runtime subagent delegation node (from subagent/start+end). */
+export interface TopologySubagentNode {
+  readonly id: string
+  /** Provider name the delegation was dispatched to. */
+  readonly provider: string
+  /** Outcome when settled: 'success' | 'error' | 'running'. */
+  readonly outcome: 'success' | 'error' | 'running'
+  readonly durationMs?: number
+}
+
+/** An MCP server node (from live `mcp__<serverName>__*` tools). */
+export interface TopologyMcpNode {
+  readonly id: string
+  /** serverName derived from the mcp__ prefix. */
+  readonly serverName: string
+  /** Number of mcp__<serverName>__* tools registered. */
+  readonly toolCount: number
+}
+
 export type TopologyNode =
   | { kind: 'plugin'; plugin: TopologyPluginNode }
   | { kind: 'service'; service: TopologyServiceNode }
+  | { kind: 'subagent'; subagent: TopologySubagentNode }
+  | { kind: 'mcp'; mcp: TopologyMcpNode }
 
-/** Directed edge. plugin→service = "injects"; plugin→plugin = "contains". */
+/** Directed edge. plugin→service = "injects"; plugin→plugin = "contains";
+ * plugin→subagent = "dispatch"; plugin→mcp = "provides-mcp". */
 export interface TopologyEdge {
   readonly from: string
   readonly to: string
-  readonly kind: 'injects' | 'contains'
+  readonly kind: 'injects' | 'contains' | 'dispatch' | 'provides-mcp'
 }
 
 /** Point-in-time topology snapshot returned by the topology Remote. */

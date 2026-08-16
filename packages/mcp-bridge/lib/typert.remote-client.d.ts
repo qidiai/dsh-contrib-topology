@@ -3,7 +3,7 @@ import type {
   RemoteResult,
   TypertRemoteContribution,
 } from '@deepseek-ai/dsh-typert-protocol'
-import type { BridgeSnapshot, McpServerConfig } from '@deepseek-ai/dsh-contrib-mcp-bridge/types'
+import type { BridgeSnapshot, McpServerConfig } from '@qidiai/dsh-contrib-mcp-bridge/types'
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$6d63702d627269646765 {

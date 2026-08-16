@@ -97,6 +97,17 @@
 .nodePending { fill: #f6efd6; }
 .nodeIdle { fill: #eceff3; }
 .nodeService { fill: #e3e9f5; }
+/* Runtime column: live subagent delegations, colored by outcome. */
+.nodeSubagentOk { fill: #d6f0d6; }
+.nodeSubagentErr { fill: #f6d6d6; }
+.nodeSubagentRun { fill: #f6efd6; }
+/* MCP server node. */
+.nodeMcp { fill: #e9e3f5; }
+
+/* Edge flavoring: contains = heavier, dispatch = dashed blue, provides-mcp = green. */
+.edgeContains { stroke-width: 2; }
+.edgeDispatch { stroke: #4a7fd6; stroke-dasharray: 5 3; }
+.edgeMcp { stroke: #3fb950; }
 
 .label {
   font-size: 11px;

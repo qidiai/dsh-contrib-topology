@@ -110,6 +110,11 @@ let McpBridgeGateway = (() => {
         config = DEFAULT_CONFIG;
         constructor(ctx) {
             super(ctx, 'mcp-bridge');
+            // Make the `tools` service resolvable on THIS context's props table so a
+            // dynamically ctx.plugin()-mounted mcp-client instance can access
+            // `ctx.tools` (proxy-trap resolution reads the local reflect.props; a bare
+            // inherited-but-unregistered service would throw "without inject").
+            this.ensureTools();
             // Hot-reload seam: the settings section drives spawn/dispose diffs.
             installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
                 setSource: (source) => {
@@ -120,6 +125,19 @@ let McpBridgeGateway = (() => {
                     void this.applyConfig();
                 },
             });
+        }
+        /** Re-register the `tools` service locally when it is available upstream. */
+        ensureTools() {
+            try {
+                const tools = this.ctx.get('tools');
+                if (tools !== undefined) {
+                    this.ctx.provide('tools', tools);
+                }
+            }
+            catch {
+                // contained by design: if 'tools' is already registered or unavailable,
+                // mcp-client instances report a clear failure instead of crashing.
+            }
         }
         /** Diff the resolved config against live instances; spawn/remove as needed. */
         async applyConfig() {

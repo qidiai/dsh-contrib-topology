@@ -8,6 +8,7 @@ const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_dispatch_parameter_0$sc
   'parallelLimit': z.number().readonly().optional(),
   'retryCount': z.number().readonly().optional(),
   'routeHint': z.string().readonly().optional(),
+  'parentSessionId': z.string().readonly().optional(),
 })
 const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_dispatch_result$schema = z.object({
   'task': z.string().readonly(),
@@ -22,6 +23,12 @@ const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_dispatch_result$schema 
   'allOk': z.boolean().readonly(),
   'startedAt': z.string().readonly(),
   'durationMs': z.number().readonly(),
+  'ranked': z.array(z.object({
+  'agent': z.string().readonly(),
+  'score': z.number().readonly(),
+  'reason': z.string().readonly(),
+  'coolingDown': z.boolean().readonly(),
+})).readonly().optional(),
 })
 const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_snapshot_result$schema = z.object({
   'stats': z.object({
@@ -78,7 +85,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorResult',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_dispatch_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":57,"column":9},
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":58,"column":9},
     },
     {
       id: '@qidiai/dsh-contrib-orchestrator#orchestrator/snapshot',
@@ -93,7 +100,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorSnapshot',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_snapshot_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":120,"column":3},
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":166,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-orchestrator#orchestrator/stats',
@@ -108,7 +115,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorStats',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_stats_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":108,"column":3},
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":154,"column":3},
     },
   ],
   model: {

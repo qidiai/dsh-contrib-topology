@@ -154,12 +154,14 @@ let OrchestratorGateway = (() => {
 	let _dispatch_decorators;
 	let _stats_decorators;
 	let _snapshot_decorators;
+	let _probe_decorators;
 	return class OrchestratorGateway extends _classSuper {
 		static {
 			const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
 			_dispatch_decorators = [Remote("dispatch")];
 			_stats_decorators = [Remote("stats")];
 			_snapshot_decorators = [Remote("snapshot")];
+			_probe_decorators = [Remote("probe")];
 			__esDecorate(this, null, _dispatch_decorators, {
 				kind: "method",
 				name: "dispatch",
@@ -190,6 +192,17 @@ let OrchestratorGateway = (() => {
 				access: {
 					has: (obj) => "snapshot" in obj,
 					get: (obj) => obj.snapshot
+				},
+				metadata: _metadata
+			}, null, _instanceExtraInitializers);
+			__esDecorate(this, null, _probe_decorators, {
+				kind: "method",
+				name: "probe",
+				static: false,
+				private: false,
+				access: {
+					has: (obj) => "probe" in obj,
+					get: (obj) => obj.probe
 				},
 				metadata: _metadata
 			}, null, _instanceExtraInitializers);
@@ -253,6 +266,14 @@ let OrchestratorGateway = (() => {
 					}
 					const agents = this.ctx.get("agents");
 					const parent = request.parentSessionId !== void 0 ? agents?.get?.(request.parentSessionId) : agents?.currentInitiator?.();
+					if (parent === void 0) {
+						this.failures += 1;
+						return {
+							ok: false,
+							durationMs: Date.now() - started,
+							error: "parent agent unavailable: dispatch needs a live session (pass parentSessionId) or an initiator boundary"
+						};
+					}
 					const run = await subagents.start(agent, {
 						prompt: [{
 							type: "text",
@@ -313,6 +334,19 @@ let OrchestratorGateway = (() => {
 				stats: this.stats(),
 				history: [...this.history],
 				capturedAt: (/* @__PURE__ */ new Date()).toISOString()
+			};
+		}
+		/** Diagnostic: service visibility on this context (agents/subagents realm probe). */
+		probe() {
+			const agents = this.ctx.get("agents");
+			let hasInitiator = false;
+			try {
+				hasInitiator = agents?.currentInitiator?.() !== void 0;
+			} catch {}
+			return {
+				agents: agents === void 0 ? "undefined" : typeof agents,
+				subagents: this.ctx.get("subagents") === void 0 ? "undefined" : typeof this.ctx.get("subagents"),
+				hasInitiator
 			};
 		}
 	};

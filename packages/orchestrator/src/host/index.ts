@@ -110,12 +110,23 @@ export class OrchestratorGateway extends TypertRemoteService {
           // positional arg, not a field of the request; `signal` is required.
           // parent resolves from the requested session's live agent, falling
           // back to the current initiator when no session id was supplied.
+          // When neither yields an Agent (e.g. a Remote-triggered dispatch
+          // outside any initiator boundary), fail with a clear error instead of
+          // letting the provider crash on `parent.options`.
           const agents = this.ctx.get('agents') as
             | { get?: (id: string) => unknown; currentInitiator?: () => unknown }
             | undefined
           const parent = request.parentSessionId !== undefined
             ? agents?.get?.(request.parentSessionId)
             : agents?.currentInitiator?.()
+          if (parent === undefined) {
+            this.failures += 1
+            return {
+              ok: false,
+              durationMs: Date.now() - started,
+              error: 'parent agent unavailable: dispatch needs a live session (pass parentSessionId) or an initiator boundary',
+            }
+          }
           const run = await subagents.start(agent, {
             prompt: [{ type: 'text', text: task }],
             parent: parent as never,
@@ -170,6 +181,21 @@ export class OrchestratorGateway extends TypertRemoteService {
       stats: this.stats(),
       history: [...this.history],
       capturedAt: new Date().toISOString(),
+    }
+  }
+
+  /** Diagnostic: service visibility on this context (agents/subagents realm probe). */
+  @Remote('probe')
+  probe(): { agents: string; subagents: string; hasInitiator: boolean } {
+    const agents = this.ctx.get('agents') as { currentInitiator?: () => unknown } | undefined
+    let hasInitiator = false
+    try {
+      hasInitiator = agents?.currentInitiator?.() !== undefined
+    } catch { /* contained */ }
+    return {
+      agents: agents === undefined ? 'undefined' : typeof agents,
+      subagents: this.ctx.get('subagents') === undefined ? 'undefined' : typeof this.ctx.get('subagents'),
+      hasInitiator,
     }
   }
 }

@@ -10,14 +10,14 @@
  */
 
 import { existsSync } from 'node:fs'
-import type { Context } from '@deepseek-ai/cordis'
+import { Context } from '@deepseek-ai/cordis'
 import * as mcpClient from '@deepseek-ai/dsh-mcp-client'
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
 import Schema from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 // Typert-generated ./typert and ./remote artifacts import Zod at runtime.
 import type {} from 'zod'
-import type { BridgeServerState, BridgeSnapshot, McpBridgeConfig, McpServerConfig } from '../types.ts'
+import type { BridgeProbe, BridgeServerState, BridgeSnapshot, McpBridgeConfig, McpServerConfig } from '../types.ts'
 import { BridgeRegistry } from './registry.ts'
 
 export type * from '../types.ts'
@@ -72,34 +72,20 @@ export class McpBridgeGateway extends TypertRemoteService {
 
   constructor(ctx: Context) {
     super(ctx, 'mcp-bridge')
-    // Make the `tools` service resolvable on THIS context's props table so a
-    // dynamically ctx.plugin()-mounted mcp-client instance can access
-    // `ctx.tools` (proxy-trap resolution reads the local reflect.props; a bare
-    // inherited-but-unregistered service would throw "without inject").
-    this.ensureTools()
     // Hot-reload seam: the settings section drives spawn/dispose diffs.
+    // setSource only stores the resolved config; onChange (fired right after
+    // attach and on every committed change) is the single applyConfig trigger.
+    // This avoids double-spawning a persisted server at attach: the previous
+    // fire-and-forget in both hooks raced two applyConfig() runs, and the
+    // second spawn failed with 'tool ... is already registered'.
     installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
       setSource: (source) => {
         this.config = source()
-        void this.applyConfig()
       },
       onChange: () => {
         void this.applyConfig()
       },
     })
-  }
-
-  /** Re-register the `tools` service locally when it is available upstream. */
-  private ensureTools(): void {
-    try {
-      const tools = this.ctx.get('tools')
-      if (tools !== undefined) {
-        this.ctx.provide('tools', tools)
-      }
-    } catch {
-      // contained by design: if 'tools' is already registered or unavailable,
-      // mcp-client instances report a clear failure instead of crashing.
-    }
   }
 
   /** Diff the resolved config against live instances; spawn/remove as needed. */
@@ -143,7 +129,18 @@ export class McpBridgeGateway extends TypertRemoteService {
       const mcpConfig = server.transport === 'stdio'
         ? { transport: 'stdio', serverName: server.serverName, command: server.command ?? '', args: [...(server.args ?? [])], failOnStartupError: true }
         : { transport: 'streamable-http', serverName: server.serverName, url: server.url ?? '', failOnStartupError: true }
-      const fiber = await this.ctx.plugin(mcpClient, mcpConfig as unknown as never)
+      // Mount each mcp-client in a FRESH root context that explicitly carries
+      // the `tools` service. `ctx.plugin()` on this gateway's own context
+      // creates a fiber whose inject chain cannot resolve `ctx.tools` inside
+      // the host realm ("cannot get property tools without inject"); a fresh
+      // Context with `tools` provided directly resolves it like the top-level
+      // cordis.yml rows do. Each server owns its context, so dispose is clean.
+      const child = new Context()
+      const tools = this.ctx.get('tools')
+      if (tools !== undefined) {
+        child.provide('tools', tools)
+      }
+      const fiber = await child.plugin(mcpClient, mcpConfig as unknown as never)
       this.registry.set({
         config: server,
         fiber,
@@ -176,13 +173,50 @@ export class McpBridgeGateway extends TypertRemoteService {
     return { servers, capturedAt: now }
   }
 
+  /** Diagnostic: how visible is the `tools` service from this context? */
+  @Remote('probe')
+  probe(): BridgeProbe {
+    const props = (this.ctx as unknown as { reflect?: { props?: Record<string, unknown> } }).reflect?.props
+    let provideOutcome = 'not attempted'
+    try {
+      const tools = this.ctx.get('tools')
+      if (tools !== undefined) {
+        this.ctx.provide('tools', tools)
+        provideOutcome = 'provided'
+      } else {
+        provideOutcome = 'no upstream tools'
+      }
+    } catch (e) {
+      provideOutcome = `provide threw: ${e instanceof Error ? e.message : String(e)}`
+    }
+    const post = (this.ctx as unknown as { reflect?: { props?: Record<string, unknown> } }).reflect?.props
+    const child = this.ctx.extend()
+    let childTools = 'unknown'
+    try {
+      childTools = typeof child.get('tools')
+    } catch (e) {
+      childTools = `threw: ${e instanceof Error ? e.message : String(e)}`
+    }
+    return {
+      hasToolsIn: 'tools' in this.ctx,
+      getTools: typeof this.ctx.get('tools'),
+      propsKeys: Object.keys(props ?? {}).slice(0, 20),
+      hasToolsProp: props !== undefined && 'tools' in props,
+      provideOutcome,
+      postHasToolsProp: post !== undefined && 'tools' in post,
+      fiberRuntime: typeof (this.ctx as unknown as { fiber?: { runtime?: unknown } }).fiber?.runtime,
+      extendChildGetTools: childTools,
+      extendChildHasToolsIn: 'tools' in child,
+    }
+  }
+
   /** Best-effort per-server tool counts from the tools service. */
   private toolCounts(): Map<string, number> {
     const counts = new Map<string, number>()
     try {
-      const tools = this.ctx.get('tools') as { list?: () => readonly { name?: string }[] } | undefined
-      if (tools?.list !== undefined) {
-        for (const tool of tools.list()) {
+      const tools = this.ctx.get('tools') as { schemas?: () => readonly { name?: string }[] } | undefined
+      if (tools?.schemas !== undefined) {
+        for (const tool of tools.schemas()) {
           const match = typeof tool.name === 'string' ? /^mcp__([^_]+)__/.exec(tool.name) : null
           if (match !== null && match[1] !== undefined) {
             counts.set(match[1], (counts.get(match[1]) ?? 0) + 1)
@@ -195,7 +229,7 @@ export class McpBridgeGateway extends TypertRemoteService {
     return counts
   }
 
-  /** Add one server at runtime (settings diff drives the actual spawn). */
+  /** Add one server at runtime (persisted via the ai-bridge-mcp settings). */
   @Remote('addServer')
   async addServer(server: McpServerConfig): Promise<BridgeSnapshot> {
     const existing = this.registry.get(server.serverName)
@@ -205,19 +239,36 @@ export class McpBridgeGateway extends TypertRemoteService {
     // A failed placeholder must not block retrying the same serverName.
     if (existing !== undefined) this.registry.remove(server.serverName)
     const next: McpBridgeConfig = { servers: [...this.config.servers.filter((s) => s.serverName !== server.serverName), server] }
-    this.config = next
-    await this.applyConfig()
+    await this.persistConfig(next)
     return this.snapshot()
   }
 
-  /** Remove one server at runtime. */
+  /** Remove one server at runtime (persisted via the ai-bridge-mcp settings). */
   @Remote('removeServer')
-  removeServer(serverName: string): BridgeSnapshot {
-    this.config = {
-      servers: this.config.servers.filter((s) => s.serverName !== serverName),
-    }
-    this.registry.remove(serverName)
+  async removeServer(serverName: string): Promise<BridgeSnapshot> {
+    const next: McpBridgeConfig = { servers: this.config.servers.filter((s) => s.serverName !== serverName) }
+    await this.persistConfig(next)
     return this.snapshot()
+  }
+
+  /**
+   * Persist a full config through the `ai-bridge-mcp` settings channel so a
+   * restart re-attaches the servers, then apply the live diff. Falls back to
+   * in-memory-only when the settings service is unavailable.
+   */
+  private async persistConfig(next: McpBridgeConfig): Promise<void> {
+    try {
+      const settings = this.ctx.get('settings') as
+        | { update?: (ns: unknown, patch: object) => Promise<void> }
+        | undefined
+      if (settings?.update !== undefined) {
+        await settings.update(NS, { servers: next.servers })
+      }
+    } catch {
+      // contained: a persistence failure must never break the live update
+    }
+    this.config = next
+    await this.applyConfig()
   }
 }
 

@@ -17,6 +17,8 @@ export declare class McpBridgeGateway extends TypertRemoteService {
     private readonly registry;
     private config;
     constructor(ctx: Context);
+    /** Re-register the `tools` service locally when it is available upstream. */
+    private ensureTools;
     /** Diff the resolved config against live instances; spawn/remove as needed. */
     private applyConfig;
     /** Spawn one mcp-client instance through the cordis plugin registry. */

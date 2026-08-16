@@ -3,7 +3,7 @@ import type {
   RemoteResult,
   TypertRemoteContribution,
 } from '@deepseek-ai/dsh-typert-protocol'
-import type { OrchestratorRequest, OrchestratorResult, OrchestratorSnapshot, OrchestratorStats } from '@deepseek-ai/dsh-contrib-orchestrator/types'
+import type { OrchestratorRequest, OrchestratorResult, OrchestratorSnapshot, OrchestratorStats } from '@qidiai/dsh-contrib-orchestrator/types'
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$6f7263686573747261746f72 {

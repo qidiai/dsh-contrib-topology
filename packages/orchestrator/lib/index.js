@@ -219,7 +219,7 @@ let OrchestratorGateway = (() => {
 			const mode = request.mode ?? "parallel";
 			let effective = request;
 			let rankEvidence;
-			if (mode === "select" && request.agents !== void 0 && request.agents.length > 1) try {
+			if ((mode === "select" || mode === "sequential" || mode === "cascade") && request.agents !== void 0 && request.agents.length > 1) try {
 				const router = this.ctx.get("router");
 				if (router?.rank !== void 0) {
 					const ranked = await router.rank(request.task, request.agents);

@@ -21,7 +21,12 @@ export type * from '../types.ts';
 /** Remote-only service exposing the live plugin/service topology graph. */
 export declare class TopologyGateway extends TypertRemoteService {
     static inject: string[];
+    /** Live subagent delegations: runId → { provider, startedAt, outcome }. */
+    private readonly delegations;
+    private readonly runStarts;
     constructor(ctx: Context);
+    /** Live MCP servers, derived from `mcp__<serverName>__*` tool names. */
+    private mcpServers;
     /**
      * Read the Loader directly on every call — no second cache to keep in
      * sync with Cordis's own lifecycle events.

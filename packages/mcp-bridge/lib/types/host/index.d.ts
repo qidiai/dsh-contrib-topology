@@ -8,23 +8,23 @@
  * for the Bridge tab. Connection/tool-registration/reconnect/HMR stay with
  * mcp-client.
  */
-import type { Context } from '@deepseek-ai/cordis';
+import { Context } from '@deepseek-ai/cordis';
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
-import type { BridgeSnapshot, McpServerConfig } from '../types.ts';
+import type { BridgeProbe, BridgeSnapshot, McpServerConfig } from '../types.ts';
 export type * from '../types.ts';
 /** Remote-only service exposing live MCP server orchestration. */
 export declare class McpBridgeGateway extends TypertRemoteService {
     private readonly registry;
     private config;
     constructor(ctx: Context);
-    /** Re-register the `tools` service locally when it is available upstream. */
-    private ensureTools;
     /** Diff the resolved config against live instances; spawn/remove as needed. */
     private applyConfig;
     /** Spawn one mcp-client instance through the cordis plugin registry. */
     private spawn;
     /** All live server states (cheap polling view for the Bridge tab). */
     snapshot(): BridgeSnapshot;
+    /** Diagnostic: how visible is the `tools` service from this context? */
+    probe(): BridgeProbe;
     /** Best-effort per-server tool counts from the tools service. */
     private toolCounts;
     /** Add one server at runtime (settings diff drives the actual spawn). */

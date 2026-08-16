@@ -31,9 +31,15 @@ export type * from '../types.ts';
 export declare class ObserveGateway extends TypertRemoteService {
     private readonly store;
     private config;
+    /** Delegation start timestamps, keyed by subagent run id (paired start/end). */
+    private readonly runStarts;
     constructor(ctx: Context);
     /** Apply the currently resolved config to the store and capture switches. */
     private applyConfig;
+    /** Record the start timestamp for a delegation, keyed by run id. */
+    private readonly onSubagentStart;
+    /** Append the delegation outcome to the event timeline (P2 dispatch kind). */
+    private readonly onSubagentEnd;
     /** Around-dispatch timing. Never touches exec.signal or the result. */
     private readonly onToolExecute;
     /** Stream wrapping. Chunks pass through verbatim; only counted. */

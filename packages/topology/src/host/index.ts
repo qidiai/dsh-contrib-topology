@@ -17,6 +17,7 @@
 
 import type { Context, FiberState } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/cordis-plugin-loader'
+import type { SubagentRunEndInfo, SubagentRunInfo } from '@deepseek-ai/dsh-subagent'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 // Typert-generated ./typert and ./remote artifacts import Zod at runtime.
 import type {} from 'zod'
@@ -122,8 +123,45 @@ function readParentId(entry: LoaderEntryLike, all: LoaderEntryLike[]): string | 
 export class TopologyGateway extends TypertRemoteService {
   static inject = ['loader']
 
+  /** Live subagent delegations: runId → { provider, startedAt, outcome }. */
+  private readonly delegations = new Map<string, { provider: string; startedAt: number; outcome: 'success' | 'error' | 'running' }>()
+  private readonly runStarts = new Map<string, number>()
+
   constructor(ctx: Context) {
     super(ctx, 'topology')
+    // Track runtime delegations so the graph can show the subagent tree.
+    ctx.on('subagent/start', (info: SubagentRunInfo) => {
+      this.runStarts.set(info.runId, Date.now())
+      this.delegations.set(info.runId, { provider: info.provider, startedAt: Date.now(), outcome: 'running' })
+    })
+    ctx.on('subagent/end', (info: SubagentRunEndInfo) => {
+      const startedAt = this.runStarts.get(info.runId)
+      this.runStarts.delete(info.runId)
+      this.delegations.set(info.runId, {
+        provider: info.provider,
+        startedAt: startedAt ?? Date.now(),
+        outcome: info.stopReason === 'completed' ? 'success' : 'error',
+      })
+    })
+  }
+
+  /** Live MCP servers, derived from `mcp__<serverName>__*` tool names. */
+  private mcpServers(): Map<string, number> {
+    const servers = new Map<string, number>()
+    try {
+      const tools = this.ctx.get('tools') as { schemas?: () => readonly { name?: string }[] } | undefined
+      if (tools?.schemas !== undefined) {
+        for (const tool of tools.schemas()) {
+          const match = typeof tool.name === 'string' ? /^mcp__([^_]+)__/.exec(tool.name) : null
+          if (match !== null && match[1] !== undefined) {
+            servers.set(match[1], (servers.get(match[1]) ?? 0) + 1)
+          }
+        }
+      }
+    } catch {
+      // contained by design
+    }
+    return servers
   }
 
   /**
@@ -176,6 +214,33 @@ export class TopologyGateway extends TypertRemoteService {
         kind: 'service',
         service: { id: `service:${key}`, name: key, consumerCount: count },
       })
+    }
+
+    // Subagent tree: each live delegation becomes a node, dispatched from the
+    // orchestrator plugin (id 'orchestrator' when present) or the provider as
+    // a root delegation.
+    for (const [runId, d] of this.delegations) {
+      nodes.push({
+        kind: 'subagent',
+        subagent: {
+          id: `subagent:${runId}`,
+          provider: d.provider,
+          outcome: d.outcome,
+          ...(d.outcome === 'running' ? {} : { durationMs: Date.now() - d.startedAt }),
+        },
+      })
+      const from = plugins.some((p) => p.id === 'orchestrator') ? 'orchestrator' : d.provider
+      edges.push({ from, to: `subagent:${runId}`, kind: 'dispatch' })
+    }
+
+    // MCP servers: one node per live mcp__ server, attached to mcp-bridge.
+    for (const [serverName, toolCount] of this.mcpServers()) {
+      nodes.push({
+        kind: 'mcp',
+        mcp: { id: `mcp:${serverName}`, serverName, toolCount },
+      })
+      const from = plugins.some((p) => p.id === 'mcp-bridge') ? 'mcp-bridge' : 'mcp:root'
+      edges.push({ from, to: `mcp:${serverName}`, kind: 'provides-mcp' })
     }
 
     return { nodes, edges, capturedAt: new Date().toISOString() }

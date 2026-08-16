@@ -28,6 +28,9 @@ export const zh = {
   'mode.merge': '合并',
   'run.ok': '成',
   'run.fail': '败',
+  'rank.title': '贝叶斯排序依据',
+  'rank.score': '得分',
+  'rank.cooling': '冷却中',
 } satisfies Record<string, string>
 
 /** Orchestrator locale key union. */
@@ -58,4 +61,7 @@ export const en = {
   'mode.merge': 'Merge',
   'run.ok': 'OK',
   'run.fail': 'Fail',
+  'rank.title': 'Bayesian ranking evidence',
+  'rank.score': 'Score',
+  'rank.cooling': 'Cooling',
 } satisfies Record<OrchestratorLocaleKey, string>

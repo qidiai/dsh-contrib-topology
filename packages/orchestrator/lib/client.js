@@ -17,27 +17,27 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var OrchestratorTab_module_css_default = {
-			"stat": "TA5uxW_stat",
-			"dispatchBox": "TA5uxW_dispatchBox",
-			"title": "TA5uxW_title",
-			"ok": "TA5uxW_ok",
-			"historyOk": "TA5uxW_historyOk",
-			"error": "TA5uxW_error",
-			"historyMode": "TA5uxW_historyMode",
-			"empty": "TA5uxW_empty",
-			"historyRow": "TA5uxW_historyRow",
-			"historyTask": "TA5uxW_historyTask",
-			"modeSelect": "TA5uxW_modeSelect",
-			"fail": "TA5uxW_fail",
-			"historyDuration": "TA5uxW_historyDuration",
 			"taskInput": "TA5uxW_taskInput",
-			"refresh": "TA5uxW_refresh",
-			"history": "TA5uxW_history",
 			"historyTitle": "TA5uxW_historyTitle",
-			"historyWinner": "TA5uxW_historyWinner",
+			"historyOk": "TA5uxW_historyOk",
 			"header": "TA5uxW_header",
+			"dispatchBox": "TA5uxW_dispatchBox",
 			"root": "TA5uxW_root",
-			"dispatchBtn": "TA5uxW_dispatchBtn"
+			"stat": "TA5uxW_stat",
+			"historyRow": "TA5uxW_historyRow",
+			"historyDuration": "TA5uxW_historyDuration",
+			"historyMode": "TA5uxW_historyMode",
+			"refresh": "TA5uxW_refresh",
+			"modeSelect": "TA5uxW_modeSelect",
+			"dispatchBtn": "TA5uxW_dispatchBtn",
+			"empty": "TA5uxW_empty",
+			"historyWinner": "TA5uxW_historyWinner",
+			"title": "TA5uxW_title",
+			"error": "TA5uxW_error",
+			"fail": "TA5uxW_fail",
+			"historyTask": "TA5uxW_historyTask",
+			"ok": "TA5uxW_ok",
+			"history": "TA5uxW_history"
 		};
 		//#endregion
 		//#region lib/types/client/OrchestratorTab.js

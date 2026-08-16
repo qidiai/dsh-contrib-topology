@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
 		let react_jsx_runtime = require("react/jsx-runtime");
 		let react = require("react");
 		//#region \0dsh-css:C:\Users\28970\WorkBuddy\2026-08-14-08-45-40\deepseek-harness\packages\contrib\topology\src\client\TopologyTab.module.css.mjs
-		const css = "._6Te0UG_root{flex-direction:column;gap:12px;padding:12px 0;display:flex}._6Te0UG_header{flex-wrap:wrap;align-items:baseline;gap:16px;display:flex}._6Te0UG_title{font-size:14px;font-weight:600}._6Te0UG_stat{opacity:.7;font-size:12px}._6Te0UG_refresh{border:1px solid var(--dsh-border,#d0d7de);cursor:pointer;background:0 0;border-radius:6px;margin-left:auto;padding:4px 10px;font-size:12px}._6Te0UG_canvas{background:var(--dsh-canvas-bg,#fafbfc);border:1px solid var(--dsh-border,#d0d7de);border-radius:8px;width:100%;height:auto}._6Te0UG_edge{fill:none;stroke:#9aa4b2;stroke-width:1px}._6Te0UG_edgeContains{stroke-dasharray:3 3;stroke:#b0b8c4}._6Te0UG_edgeDisabled{stroke-dasharray:5 3;stroke:#c9a227}._6Te0UG_edgeLit{stroke:#2f6feb;stroke-width:2px}._6Te0UG_edgeDim{opacity:.2}._6Te0UG_groupHeader{fill:#57606a;letter-spacing:.4px;text-transform:uppercase;pointer-events:none;font-size:12px;font-weight:600}._6Te0UG_depth{fill:#8a94a0;pointer-events:none;font-size:11px}._6Te0UG_node{cursor:pointer}._6Te0UG_nodeFocus rect{stroke:#2f6feb;stroke-width:2px}._6Te0UG_nodeActive{fill:#d6f0d6}._6Te0UG_nodeFailed{fill:#f6d6d6}._6Te0UG_nodePending{fill:#f6efd6}._6Te0UG_nodeIdle{fill:#eceff3}._6Te0UG_nodeService{fill:#e3e9f5}._6Te0UG_label{fill:#1f2328;pointer-events:none;font-size:11px}._6Te0UG_badge{fill:#4a5568;pointer-events:none;font-size:11px}._6Te0UG_error{color:#c0392b;font-size:13px}._6Te0UG_empty{opacity:.6;font-size:13px}._6Te0UG_legend{opacity:.75;gap:16px;font-size:11px;display:flex}";
+		const css = "._6Te0UG_root{flex-direction:column;gap:12px;padding:12px 0;display:flex}._6Te0UG_header{flex-wrap:wrap;align-items:baseline;gap:16px;display:flex}._6Te0UG_title{font-size:14px;font-weight:600}._6Te0UG_stat{opacity:.7;font-size:12px}._6Te0UG_refresh{border:1px solid var(--dsh-border,#d0d7de);cursor:pointer;background:0 0;border-radius:6px;margin-left:auto;padding:4px 10px;font-size:12px}._6Te0UG_canvas{background:var(--dsh-canvas-bg,#fafbfc);border:1px solid var(--dsh-border,#d0d7de);border-radius:8px;width:100%;height:auto}._6Te0UG_edge{fill:none;stroke:#9aa4b2;stroke-width:1px}._6Te0UG_edgeContains{stroke-dasharray:3 3;stroke:#b0b8c4}._6Te0UG_edgeDisabled{stroke-dasharray:5 3;stroke:#c9a227}._6Te0UG_edgeLit{stroke:#2f6feb;stroke-width:2px}._6Te0UG_edgeDim{opacity:.2}._6Te0UG_groupHeader{fill:#57606a;letter-spacing:.4px;text-transform:uppercase;pointer-events:none;font-size:12px;font-weight:600}._6Te0UG_depth{fill:#8a94a0;pointer-events:none;font-size:11px}._6Te0UG_node{cursor:pointer}._6Te0UG_nodeFocus rect{stroke:#2f6feb;stroke-width:2px}._6Te0UG_nodeActive{fill:#d6f0d6}._6Te0UG_nodeFailed{fill:#f6d6d6}._6Te0UG_nodePending{fill:#f6efd6}._6Te0UG_nodeIdle{fill:#eceff3}._6Te0UG_nodeService{fill:#e3e9f5}._6Te0UG_nodeSubagentOk{fill:#d6f0d6}._6Te0UG_nodeSubagentErr{fill:#f6d6d6}._6Te0UG_nodeSubagentRun{fill:#f6efd6}._6Te0UG_nodeMcp{fill:#e9e3f5}._6Te0UG_edgeContains{stroke-width:2px}._6Te0UG_edgeDispatch{stroke:#4a7fd6;stroke-dasharray:5 3}._6Te0UG_edgeMcp{stroke:#3fb950}._6Te0UG_label{fill:#1f2328;pointer-events:none;font-size:11px}._6Te0UG_badge{fill:#4a5568;pointer-events:none;font-size:11px}._6Te0UG_error{color:#c0392b;font-size:13px}._6Te0UG_empty{opacity:.6;font-size:13px}._6Te0UG_legend{opacity:.75;gap:16px;font-size:11px;display:flex}";
 		const tagId = "@qidiai/dsh-contrib-topology/TopologyTab.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -17,31 +17,37 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var TopologyTab_module_css_default = {
-			"nodeService": "_6Te0UG_nodeService",
-			"badge": "_6Te0UG_badge",
+			"nodeSubagentOk": "_6Te0UG_nodeSubagentOk",
 			"edgeContains": "_6Te0UG_edgeContains",
 			"nodeActive": "_6Te0UG_nodeActive",
-			"empty": "_6Te0UG_empty",
-			"label": "_6Te0UG_label",
-			"canvas": "_6Te0UG_canvas",
-			"stat": "_6Te0UG_stat",
-			"nodeFailed": "_6Te0UG_nodeFailed",
-			"groupHeader": "_6Te0UG_groupHeader",
-			"node": "_6Te0UG_node",
 			"title": "_6Te0UG_title",
-			"refresh": "_6Te0UG_refresh",
-			"edgeDim": "_6Te0UG_edgeDim",
-			"root": "_6Te0UG_root",
-			"header": "_6Te0UG_header",
-			"edge": "_6Te0UG_edge",
-			"edgeDisabled": "_6Te0UG_edgeDisabled",
-			"depth": "_6Te0UG_depth",
-			"nodePending": "_6Te0UG_nodePending",
+			"nodeFailed": "_6Te0UG_nodeFailed",
 			"nodeIdle": "_6Te0UG_nodeIdle",
-			"error": "_6Te0UG_error",
+			"nodeMcp": "_6Te0UG_nodeMcp",
+			"edge": "_6Te0UG_edge",
+			"edgeDispatch": "_6Te0UG_edgeDispatch",
+			"edgeMcp": "_6Te0UG_edgeMcp",
 			"legend": "_6Te0UG_legend",
+			"edgeDim": "_6Te0UG_edgeDim",
+			"nodeFocus": "_6Te0UG_nodeFocus",
+			"nodeService": "_6Te0UG_nodeService",
+			"error": "_6Te0UG_error",
+			"canvas": "_6Te0UG_canvas",
+			"badge": "_6Te0UG_badge",
+			"nodePending": "_6Te0UG_nodePending",
+			"stat": "_6Te0UG_stat",
+			"node": "_6Te0UG_node",
+			"refresh": "_6Te0UG_refresh",
+			"root": "_6Te0UG_root",
+			"depth": "_6Te0UG_depth",
+			"label": "_6Te0UG_label",
+			"groupHeader": "_6Te0UG_groupHeader",
+			"nodeSubagentRun": "_6Te0UG_nodeSubagentRun",
 			"edgeLit": "_6Te0UG_edgeLit",
-			"nodeFocus": "_6Te0UG_nodeFocus"
+			"header": "_6Te0UG_header",
+			"empty": "_6Te0UG_empty",
+			"nodeSubagentErr": "_6Te0UG_nodeSubagentErr",
+			"edgeDisabled": "_6Te0UG_edgeDisabled"
 		};
 		//#endregion
 		//#region lib/types/client/TopologyTab.js
@@ -56,7 +62,9 @@ window.__ModuleLoader__.load({
 		const PAD_TOP = 16;
 		const COL_PLUGIN_X = 20;
 		const COL_SERVICE_X = 420;
-		const WIDTH = 680;
+		/** Runtime column: live subagent delegations and MCP servers. */
+		const COL_RUNTIME_X = 640;
+		const WIDTH = 920;
 		/** Plugin column partitions, in render order. */
 		const GROUP_ORDER = [
 			"core",
@@ -149,12 +157,30 @@ window.__ModuleLoader__.load({
 					});
 					rowIndex += 1;
 				}
-				if (snapshot) snapshot.nodes.flatMap((n) => n.kind === "service" ? [n.service] : []).forEach((s, i) => {
-					map.set(s.id, {
-						x: COL_SERVICE_X,
-						y: PAD_TOP + i * ROW_H
+				if (snapshot) {
+					snapshot.nodes.flatMap((n) => n.kind === "service" ? [n.service] : []).forEach((s, i) => {
+						map.set(s.id, {
+							x: COL_SERVICE_X,
+							y: PAD_TOP + i * ROW_H
+						});
 					});
-				});
+					snapshot.nodes.flatMap((n) => {
+						if (n.kind === "subagent") return [{
+							id: n.subagent.id,
+							label: n.subagent.provider
+						}];
+						if (n.kind === "mcp") return [{
+							id: n.mcp.id,
+							label: n.mcp.serverName
+						}];
+						return [];
+					}).forEach((r, i) => {
+						map.set(r.id, {
+							x: COL_RUNTIME_X,
+							y: PAD_TOP + i * ROW_H
+						});
+					});
+				}
 				return map;
 			}, [pluginRows, snapshot]);
 			/** enabled lookup for dashed disabled injects edges. */
@@ -184,7 +210,9 @@ window.__ModuleLoader__.load({
 			});
 			const pluginCount = snapshot.nodes.filter((n) => n.kind === "plugin").length;
 			const serviceCount = snapshot.nodes.filter((n) => n.kind === "service").length;
-			const height = PAD_TOP * 2 + Math.max(pluginRows.length, serviceCount) * ROW_H;
+			const subagentCount = snapshot.nodes.filter((n) => n.kind === "subagent").length;
+			const mcpCount = snapshot.nodes.filter((n) => n.kind === "mcp").length;
+			const height = PAD_TOP * 2 + Math.max(pluginRows.length, serviceCount, subagentCount + mcpCount) * ROW_H;
 			return (0, react_jsx_runtime.jsxs)("div", {
 				className: TopologyTab_module_css_default.root,
 				children: [
@@ -209,6 +237,22 @@ window.__ModuleLoader__.load({
 									t("stats.services"),
 									": ",
 									serviceCount
+								]
+							}),
+							(0, react_jsx_runtime.jsxs)("span", {
+								className: TopologyTab_module_css_default.stat,
+								children: [
+									t("stats.subagents"),
+									": ",
+									subagentCount
+								]
+							}),
+							(0, react_jsx_runtime.jsxs)("span", {
+								className: TopologyTab_module_css_default.stat,
+								children: [
+									t("stats.mcp"),
+									": ",
+									mcpCount
 								]
 							}),
 							(0, react_jsx_runtime.jsxs)("span", {
@@ -242,9 +286,10 @@ window.__ModuleLoader__.load({
 								const mx = (x1 + x2) / 2;
 								const lit = isEdgeLit(edge);
 								const disabledInjects = edge.kind === "injects" && enabledById.get(edge.from) === false;
+								const edgeKindClass = edge.kind === "contains" ? TopologyTab_module_css_default.edgeContains : edge.kind === "dispatch" ? TopologyTab_module_css_default.edgeDispatch : edge.kind === "provides-mcp" ? TopologyTab_module_css_default.edgeMcp : "";
 								return (0, react_jsx_runtime.jsx)("path", {
 									d: `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`,
-									className: `${TopologyTab_module_css_default.edge} ${edge.kind === "contains" ? TopologyTab_module_css_default.edgeContains : ""} ${disabledInjects ? TopologyTab_module_css_default.edgeDisabled : ""} ${lit ? TopologyTab_module_css_default.edgeLit : ""} ${focus && !lit ? TopologyTab_module_css_default.edgeDim : ""}`
+									className: `${TopologyTab_module_css_default.edge} ${edgeKindClass} ${disabledInjects ? TopologyTab_module_css_default.edgeDisabled : ""} ${lit ? TopologyTab_module_css_default.edgeLit : ""} ${focus && !lit ? TopologyTab_module_css_default.edgeDim : ""}`
 								}, i);
 							}),
 							pluginRows.map((row, i) => {
@@ -318,6 +363,73 @@ window.__ModuleLoader__.load({
 										})
 									]
 								}, node.service.id);
+							}),
+							snapshot.nodes.filter((n) => n.kind === "subagent").map((node) => {
+								if (node.kind !== "subagent") return null;
+								const pos = positions.get(node.subagent.id);
+								if (!pos) return null;
+								const outcomeClass = node.subagent.outcome === "success" ? TopologyTab_module_css_default.nodeSubagentOk : node.subagent.outcome === "error" ? TopologyTab_module_css_default.nodeSubagentErr : TopologyTab_module_css_default.nodeSubagentRun;
+								return (0, react_jsx_runtime.jsxs)("g", {
+									transform: `translate(${pos.x}, ${pos.y})`,
+									className: `${TopologyTab_module_css_default.node} ${focus === node.subagent.id ? TopologyTab_module_css_default.nodeFocus : ""}`,
+									onMouseEnter: () => setHovered(node.subagent.id),
+									onMouseLeave: () => setHovered(null),
+									onClick: () => setSelected((cur) => cur === node.subagent.id ? null : node.subagent.id),
+									children: [
+										(0, react_jsx_runtime.jsx)("rect", {
+											width: 220,
+											height: ROW_H - 4,
+											rx: 5,
+											className: outcomeClass
+										}),
+										(0, react_jsx_runtime.jsx)("text", {
+											x: 8,
+											y: 17,
+											className: TopologyTab_module_css_default.label,
+											children: node.subagent.provider.length > 26 ? `${node.subagent.provider.slice(0, 24)}…` : node.subagent.provider
+										}),
+										(0, react_jsx_runtime.jsx)("text", {
+											x: 212,
+											y: 17,
+											className: TopologyTab_module_css_default.badge,
+											textAnchor: "end",
+											children: node.subagent.outcome === "running" ? "…" : `${node.subagent.durationMs ?? 0}ms`
+										})
+									]
+								}, node.subagent.id);
+							}),
+							snapshot.nodes.filter((n) => n.kind === "mcp").map((node) => {
+								if (node.kind !== "mcp") return null;
+								const pos = positions.get(node.mcp.id);
+								if (!pos) return null;
+								return (0, react_jsx_runtime.jsxs)("g", {
+									transform: `translate(${pos.x}, ${pos.y})`,
+									className: `${TopologyTab_module_css_default.node} ${focus === node.mcp.id ? TopologyTab_module_css_default.nodeFocus : ""}`,
+									onMouseEnter: () => setHovered(node.mcp.id),
+									onMouseLeave: () => setHovered(null),
+									onClick: () => setSelected((cur) => cur === node.mcp.id ? null : node.mcp.id),
+									children: [
+										(0, react_jsx_runtime.jsx)("rect", {
+											width: 220,
+											height: ROW_H - 4,
+											rx: 5,
+											className: TopologyTab_module_css_default.nodeMcp
+										}),
+										(0, react_jsx_runtime.jsx)("text", {
+											x: 8,
+											y: 17,
+											className: TopologyTab_module_css_default.label,
+											children: node.mcp.serverName.length > 22 ? `${node.mcp.serverName.slice(0, 20)}…` : node.mcp.serverName
+										}),
+										(0, react_jsx_runtime.jsxs)("text", {
+											x: 212,
+											y: 17,
+											className: TopologyTab_module_css_default.badge,
+											textAnchor: "end",
+											children: [node.mcp.toolCount, "↴"]
+										})
+									]
+								}, node.mcp.id);
 							})
 						]
 					}),
@@ -344,6 +456,8 @@ window.__ModuleLoader__.load({
 			title: "运行态插件依赖拓扑",
 			"stats.plugins": "插件",
 			"stats.services": "服务",
+			"stats.subagents": "子代理",
+			"stats.mcp": "MCP",
 			"stats.edges": "依赖边",
 			refresh: "刷新",
 			empty: "暂无插件。",
@@ -358,6 +472,8 @@ window.__ModuleLoader__.load({
 			title: "Live Plugin Dependency Topology",
 			"stats.plugins": "Plugins",
 			"stats.services": "Services",
+			"stats.subagents": "Subagents",
+			"stats.mcp": "MCP",
 			"stats.edges": "Edges",
 			refresh: "Refresh",
 			empty: "No plugins are available.",

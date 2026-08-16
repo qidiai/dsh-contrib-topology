@@ -132,9 +132,40 @@ let TopologyGateway = (() => {
 			});
 		}
 		static inject = ["loader"];
+		/** Live subagent delegations: runId → { provider, startedAt, outcome }. */
+		delegations = (__runInitializers(this, _instanceExtraInitializers), /* @__PURE__ */ new Map());
+		runStarts = /* @__PURE__ */ new Map();
 		constructor(ctx) {
 			super(ctx, "topology");
-			__runInitializers(this, _instanceExtraInitializers);
+			ctx.on("subagent/start", (info) => {
+				this.runStarts.set(info.runId, Date.now());
+				this.delegations.set(info.runId, {
+					provider: info.provider,
+					startedAt: Date.now(),
+					outcome: "running"
+				});
+			});
+			ctx.on("subagent/end", (info) => {
+				const startedAt = this.runStarts.get(info.runId);
+				this.runStarts.delete(info.runId);
+				this.delegations.set(info.runId, {
+					provider: info.provider,
+					startedAt: startedAt ?? Date.now(),
+					outcome: info.stopReason === "completed" ? "success" : "error"
+				});
+			});
+		}
+		/** Live MCP servers, derived from `mcp__<serverName>__*` tool names. */
+		mcpServers() {
+			const servers = /* @__PURE__ */ new Map();
+			try {
+				const tools = this.ctx.get("tools");
+				if (tools?.schemas !== void 0) for (const tool of tools.schemas()) {
+					const match = typeof tool.name === "string" ? /^mcp__([^_]+)__/.exec(tool.name) : null;
+					if (match !== null && match[1] !== void 0) servers.set(match[1], (servers.get(match[1]) ?? 0) + 1);
+				}
+			} catch {}
+			return servers;
 		}
 		/**
 		* Read the Loader directly on every call — no second cache to keep in
@@ -190,6 +221,39 @@ let TopologyGateway = (() => {
 					consumerCount: count
 				}
 			});
+			for (const [runId, d] of this.delegations) {
+				nodes.push({
+					kind: "subagent",
+					subagent: {
+						id: `subagent:${runId}`,
+						provider: d.provider,
+						outcome: d.outcome,
+						...d.outcome === "running" ? {} : { durationMs: Date.now() - d.startedAt }
+					}
+				});
+				const from = plugins.some((p) => p.id === "orchestrator") ? "orchestrator" : d.provider;
+				edges.push({
+					from,
+					to: `subagent:${runId}`,
+					kind: "dispatch"
+				});
+			}
+			for (const [serverName, toolCount] of this.mcpServers()) {
+				nodes.push({
+					kind: "mcp",
+					mcp: {
+						id: `mcp:${serverName}`,
+						serverName,
+						toolCount
+					}
+				});
+				const from = plugins.some((p) => p.id === "mcp-bridge") ? "mcp-bridge" : "mcp:root";
+				edges.push({
+					from,
+					to: `mcp:${serverName}`,
+					kind: "provides-mcp"
+				});
+			}
 			return {
 				nodes,
 				edges,

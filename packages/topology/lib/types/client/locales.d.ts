@@ -7,6 +7,8 @@ export declare const zh: {
     title: string;
     'stats.plugins': string;
     'stats.services': string;
+    'stats.subagents': string;
+    'stats.mcp': string;
     'stats.edges': string;
     refresh: string;
     empty: string;
@@ -23,6 +25,8 @@ export declare const en: {
     title: string;
     'stats.plugins': string;
     'stats.services': string;
+    'stats.subagents': string;
+    'stats.mcp': string;
     'stats.edges': string;
     refresh: string;
     empty: string;

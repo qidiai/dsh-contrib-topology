@@ -27,10 +27,16 @@ export declare class McpBridgeGateway extends TypertRemoteService {
     probe(): BridgeProbe;
     /** Best-effort per-server tool counts from the tools service. */
     private toolCounts;
-    /** Add one server at runtime (settings diff drives the actual spawn). */
+    /** Add one server at runtime (persisted via the ai-bridge-mcp settings). */
     addServer(server: McpServerConfig): Promise<BridgeSnapshot>;
-    /** Remove one server at runtime. */
-    removeServer(serverName: string): BridgeSnapshot;
+    /** Remove one server at runtime (persisted via the ai-bridge-mcp settings). */
+    removeServer(serverName: string): Promise<BridgeSnapshot>;
+    /**
+     * Persist a full config through the `ai-bridge-mcp` settings channel so a
+     * restart re-attaches the servers, then apply the live diff. Falls back to
+     * in-memory-only when the settings service is unavailable.
+     */
+    private persistConfig;
 }
 export default McpBridgeGateway;
 //# sourceMappingURL=index.d.ts.map

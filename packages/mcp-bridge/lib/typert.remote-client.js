@@ -18,6 +18,17 @@ const _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_addServer_result$schema = z
 })).readonly(),
   'capturedAt': z.string().readonly(),
 })
+const _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_probe_result$schema = z.object({
+  'hasToolsIn': z.boolean().readonly(),
+  'getTools': z.string().readonly(),
+  'propsKeys': z.array(z.string()).readonly(),
+  'hasToolsProp': z.boolean().readonly(),
+  'provideOutcome': z.string().readonly(),
+  'postHasToolsProp': z.boolean().readonly(),
+  'fiberRuntime': z.string().readonly(),
+  'extendChildGetTools': z.string().readonly(),
+  'extendChildHasToolsIn': z.boolean().readonly(),
+})
 const _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_removeServer_parameter_0$schema = z.string()
 const _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_removeServer_result$schema = z.object({
   'servers': z.array(z.object({
@@ -66,7 +77,22 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeSnapshot',
         schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_addServer_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":200,"column":9},
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":230,"column":9},
+    },
+    {
+      id: '@qidiai/dsh-contrib-mcp-bridge#mcp-bridge/probe',
+      service: 'mcp-bridge',
+      namespace: 'mcp-bridge',
+      method: 'probe',
+      invocation: { kind: 'direct' },
+      parameters: [
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeProbe',
+        schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_probe_result$schema,
+      },
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":174,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-mcp-bridge#mcp-bridge/removeServer',
@@ -91,7 +117,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeSnapshot',
         schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_removeServer_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":215,"column":3},
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":245,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-mcp-bridge#mcp-bridge/snapshot',
@@ -106,7 +132,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeSnapshot',
         schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_snapshot_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":166,"column":3},
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":159,"column":3},
     },
   ],
 }

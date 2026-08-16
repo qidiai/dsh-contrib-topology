@@ -28,6 +28,12 @@ export declare class OrchestratorGateway extends TypertRemoteService {
     stats(): OrchestratorStats;
     /** Recent dispatch history plus counters (cheap polling view). */
     snapshot(): OrchestratorSnapshot;
+    /** Diagnostic: service visibility on this context (agents/subagents realm probe). */
+    probe(): {
+        agents: string;
+        subagents: string;
+        hasInitiator: boolean;
+    };
 }
 export default OrchestratorGateway;
 //# sourceMappingURL=index.d.ts.map

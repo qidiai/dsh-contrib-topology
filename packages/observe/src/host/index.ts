@@ -18,6 +18,7 @@
 import type { Context } from '@deepseek-ai/cordis'
 import type { ToolDispatchExecution, ToolExecutionResult } from '@deepseek-ai/dsh-tools'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
+import type { SubagentRunEndInfo, SubagentRunInfo } from '@deepseek-ai/dsh-subagent'
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
 import Schema from '@deepseek-ai/schemastery'
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
@@ -79,11 +80,15 @@ function outcomeOfResult(result: unknown): ObserveOutcome {
 export class ObserveGateway extends TypertRemoteService {
   private readonly store = new ObserveStore()
   private config: ObserveConfig = DEFAULT_CONFIG
+  /** Delegation start timestamps, keyed by subagent run id (paired start/end). */
+  private readonly runStarts = new Map<string, number>()
 
   constructor(ctx: Context) {
     super(ctx, 'observe')
     ctx.on('tools/execute', this.onToolExecute)
     ctx.on('llm/stream', this.onLlmStream)
+    ctx.on('subagent/start', this.onSubagentStart)
+    ctx.on('subagent/end', this.onSubagentEnd)
     // M4: the `ai-bridge-observe` user-settings section hot-reloads capacity
     // and the capture switches (the same seam the P2 router will reuse).
     installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
@@ -100,6 +105,34 @@ export class ObserveGateway extends TypertRemoteService {
   /** Apply the currently resolved config to the store and capture switches. */
   private applyConfig(): void {
     this.store.setMaxEvents(this.config.maxEvents)
+  }
+
+  /** Record the start timestamp for a delegation, keyed by run id. */
+  private readonly onSubagentStart = (info: SubagentRunInfo): void => {
+    this.runStarts.set(info.runId, Date.now())
+  }
+
+  /** Append the delegation outcome to the event timeline (P2 dispatch kind). */
+  private readonly onSubagentEnd = (info: SubagentRunEndInfo): void => {
+    const startedAt = this.runStarts.get(info.runId)
+    this.runStarts.delete(info.runId)
+    if (!this.config.captureTools && !this.config.captureLlm) return
+    try {
+      const outcome: ObserveOutcome = info.stopReason === 'completed' ? 'success' : 'error'
+      this.store.push({
+        id: this.store.nextId(),
+        kind: 'subagent.dispatch',
+        name: info.provider,
+        ...(agentKeyOf(info.id) ? { agent: agentKeyOf(info.id)! } : {}),
+        startedAt: new Date(startedAt ?? Date.now()).toISOString(),
+        ...(startedAt === undefined ? {} : { durationMs: Date.now() - startedAt }),
+        outcome,
+        source: 'builtin',
+        features: { local: info.local, stopReason: info.stopReason },
+      })
+    } catch {
+      // contained by design
+    }
   }
 
   /** Around-dispatch timing. Never touches exec.signal or the result. */

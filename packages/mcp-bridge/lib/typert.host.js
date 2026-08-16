@@ -80,7 +80,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeSnapshot',
         schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_addServer_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":230,"column":9},
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":234,"column":9},
     },
     {
       id: '@qidiai/dsh-contrib-mcp-bridge#mcp-bridge/probe',
@@ -95,7 +95,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeProbe',
         schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_probe_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":174,"column":3},
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":178,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-mcp-bridge#mcp-bridge/removeServer',
@@ -120,7 +120,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeSnapshot',
         schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_removeServer_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":245,"column":3},
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":248,"column":9},
     },
     {
       id: '@qidiai/dsh-contrib-mcp-bridge#mcp-bridge/snapshot',
@@ -135,7 +135,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-mcp-bridge/types#BridgeSnapshot',
         schema: _deepseek_ai_dsh_contrib_mcp_bridge_mcp_bridge_snapshot_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":159,"column":3},
+      sourceLocation: {"file":"packages/contrib/mcp-bridge/src/host/index.ts","line":163,"column":3},
     },
   ],
   model: {

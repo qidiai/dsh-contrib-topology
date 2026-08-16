@@ -86,13 +86,15 @@ let OrchestratorGateway = (() => {
         async dispatch(request) {
             const startedAt = new Date().toISOString();
             const mode = request.mode ?? 'parallel';
-            // select-mode seam: reorder the candidates by the router's Bayesian rank
-            // (best first) before delegating; falls back to the caller's order when the
-            // router service is unavailable or ranking fails. The rank evidence is
-            // carried into the result for select-mode transparency.
+            // Ordered-attempt seam (select / sequential / cascade): reorder the
+            // candidates by the router's Bayesian rank (best first) before delegating;
+            // falls back to the caller's order when the router service is unavailable
+            // or ranking fails. The rank evidence is carried into the result for
+            // decision transparency in every ordered mode.
             let effective = request;
             let rankEvidence;
-            if (mode === 'select' && request.agents !== undefined && request.agents.length > 1) {
+            const orderedModes = mode === 'select' || mode === 'sequential' || mode === 'cascade';
+            if (orderedModes && request.agents !== undefined && request.agents.length > 1) {
                 try {
                     const router = this.ctx.get('router');
                     if (router?.rank !== undefined) {

@@ -1,0 +1,275 @@
+/**
+ * Router scoring core — pure functions, no I/O.
+ *
+ * Ported from the ai-bridge `routing-score.js` (7-dimension explainable
+ * Bayesian routing): success, capability, latency, token cost, freshness,
+ * stability, confidence. Only signals the system actually has are used:
+ * run outcomes, durations, token usage, recency. "Cost" is average token
+ * consumption, not a currency conversion.
+ */
+
+export const DAY_MS = 24 * 60 * 60 * 1000
+
+export const DEFAULT_WEIGHTS = Object.freeze({
+  success: 0.30,
+  capability: 0.20,
+  latency: 0.15,
+  tokenCost: 0.10,
+  freshness: 0.10,
+  stability: 0.10,
+  confidence: 0.05,
+})
+
+export type RoutingWeights = typeof DEFAULT_WEIGHTS
+
+/** One historical observation of a provider run. */
+export interface RouterObservation {
+  /** ISO timestamp of the run. */
+  readonly ts: string
+  /** Whether the run settled successfully. */
+  readonly success: boolean
+  readonly durationMs?: number
+  readonly tokens?: number
+  readonly task?: string
+  readonly category?: string
+  /** Caller session key when resolvable — the session-aware routing dimension. */
+  readonly agent?: string
+}
+
+/** Aggregated per-provider routing profile (the explainable score inputs). */
+export interface RouterProfile {
+  readonly name: string
+  readonly id: string
+  readonly canonicalId: string
+  readonly calls: number
+  readonly successes: number
+  readonly weightedCalls: number
+  readonly weightedSuccesses: number
+  readonly successScore: number
+  readonly stabilityScore: number
+  readonly confidence: number
+  readonly freshness: number
+  readonly averageDurationMs: number | null
+  readonly averageTokens: number | null
+  readonly lastObservedAt: string | null
+  readonly lastSuccessAt: string | null
+  readonly lastFailureAt: string | null
+  readonly cooldownUntil: string | null
+  readonly coolingDown: boolean
+  readonly categoryStats: Record<string, { calls: number; successes: number }>
+  /** Per-session aggregates — the session-aware routing dimension. */
+  readonly agentStats: Record<string, { calls: number; successes: number }>
+}
+
+/** Scored profile: base profile + category-specific score + ranking metadata. */
+export interface ScoredRouterProfile extends RouterProfile {
+  readonly category: string
+  readonly score: number
+  readonly components: Record<string, number>
+  readonly explorationBonus: number
+  readonly reason: string
+}
+
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, Number.isFinite(value) ? value : 0))
+}
+
+function parseDurationMs(value: number | string | undefined): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? Math.max(0, value) : null
+  if (typeof value !== 'string') return null
+  const text = value.trim().toLowerCase()
+  const match = text.match(/^([0-9]+(?:\.[0-9]+)?)\s*(ms|s|sec|secs|second|seconds)?$/)
+  if (!match) return null
+  const n = Number(match[1])
+  return match[2] === 'ms' ? n : n * 1000
+}
+
+/** Classify a task description into a coarse category for capability scoring. */
+export function classifyTask(task: string): string {
+  const text = String(task || '').toLowerCase()
+  if (/(review|审查|评审|检查代码|code review|安全审计|audit|pr\b|pull request)/i.test(text)) return 'review'
+  if (/(写|实现|修复|重构|函数|代码|python|javascript|typescript|node|java|go\b|rust|sql|bug|test|测试用例|接口|api|脚本|implement|fix|refactor|write|code|function|script|build)/i.test(text)) return 'code'
+  if (/(分析|比较|调研|研究|原因|诊断|评估|方案|架构|设计|analy|investigat|debug|diagnos|root cause|why|compare|research|evaluate|design|architect|leak)/i.test(text)) return 'analysis'
+  if (/(文档|报告|说明|总结|readme|release note|教程|doc|summar|explain|tutorial)/i.test(text)) return 'docs'
+  if (/(部署|启动|停止|进程|服务|日志|运维|环境|配置|docker|server|deploy|restart|stop|start|monitor|container|kubernetes|process|log)/i.test(text)) return 'ops'
+  return 'general'
+}
+
+function decayWeight(ts: string, now: number, halfLifeDays = 14): number {
+  const time = Date.parse(ts)
+  if (!Number.isFinite(time)) return 0.5
+  const age = Math.max(0, now - time)
+  return Math.pow(0.5, age / (Math.max(1, halfLifeDays) * DAY_MS))
+}
+
+function bayesianRate(successes: number, calls: number, priorMean = 0.5, priorStrength = 4): number {
+  return (successes + priorMean * priorStrength) / (calls + priorStrength)
+}
+
+function wilsonLowerBound(successes: number, calls: number, z = 1.28): number {
+  if (calls <= 0) return 0.5
+  const p = successes / calls
+  const z2 = z * z
+  const denom = 1 + z2 / calls
+  const centre = p + z2 / (2 * calls)
+  const margin = z * Math.sqrt((p * (1 - p) + z2 / (4 * calls)) / calls)
+  return clamp01((centre - margin) / denom)
+}
+
+function average(values: number[]): number | null {
+  const valid = values.filter(Number.isFinite)
+  return valid.length ? valid.reduce((sum, v) => sum + v, 0) / valid.length : null
+}
+
+export interface RoutingInput {
+  readonly name: string
+  readonly id: string
+  readonly canonicalId: string
+  readonly observations: readonly RouterObservation[]
+  readonly tokenSummary?: { readonly calls?: number; readonly total?: number; readonly lastDuration?: number }
+}
+
+/** Build a provider's routing profile from its observation history. */
+export function buildRoutingProfile(
+  tool: { readonly name: string; readonly id: string; readonly canonicalId: string },
+  observations: readonly RouterObservation[],
+  tokenSummary: { readonly calls?: number; readonly total?: number; readonly lastDuration?: number } = {},
+  now = Date.now(),
+): RouterProfile {
+  const rows = observations.filter(Boolean)
+  let weightedCalls = 0
+  let weightedSuccesses = 0
+  const categoryStats: Record<string, { calls: number; successes: number }> = {}
+  const agentStats: Record<string, { calls: number; successes: number }> = {}
+  let lastObservedAt: string | null = null
+  let lastSuccessAt: string | null = null
+  let lastFailureAt: string | null = null
+
+  for (const row of rows) {
+    const weight = decayWeight(row.ts, now)
+    weightedCalls += weight
+    if (row.success) weightedSuccesses += weight
+    const category = row.category || classifyTask(row.task ?? '')
+    if (!categoryStats[category]) categoryStats[category] = { calls: 0, successes: 0 }
+    categoryStats[category].calls += weight
+    if (row.success) categoryStats[category].successes += weight
+    if (row.agent) {
+      const bucket = agentStats[row.agent] ?? (agentStats[row.agent] = { calls: 0, successes: 0 })
+      bucket.calls += weight
+      if (row.success) bucket.successes += weight
+    }
+    if (row.ts && (!lastObservedAt || row.ts > lastObservedAt)) lastObservedAt = row.ts
+    if (row.success && row.ts && (!lastSuccessAt || row.ts > lastSuccessAt)) lastSuccessAt = row.ts
+    if (!row.success && row.ts && (!lastFailureAt || row.ts > lastFailureAt)) lastFailureAt = row.ts
+  }
+
+  const durations = rows.map((r) => parseDurationMs(r.durationMs)).filter((v): v is number => v !== null)
+  const observedTokens = rows.map((r) => Number(r.tokens)).filter((v) => Number.isFinite(v) && v > 0)
+  const aggregateCalls = Number(tokenSummary.calls) || 0
+  const aggregateTokens = Number(tokenSummary.total) || 0
+  const averageTokens = observedTokens.length
+    ? average(observedTokens)
+    : aggregateCalls > 0 ? aggregateTokens / aggregateCalls : null
+  const averageDurationMs = durations.length ? average(durations) : parseDurationMs(tokenSummary.lastDuration)
+  const successScore = bayesianRate(weightedSuccesses, weightedCalls)
+  const confidence = clamp01(1 - Math.exp(-weightedCalls / 8))
+  const freshness = lastObservedAt
+    ? clamp01(Math.exp(-Math.max(0, now - Date.parse(lastObservedAt)) / (21 * DAY_MS)))
+    : 0.35
+  const lastSuccessMs = Date.parse(lastSuccessAt ?? '')
+  const lastFailureMs = Date.parse(lastFailureAt ?? '')
+  const cooldownUntilMs = Number.isFinite(lastFailureMs) &&
+    (!Number.isFinite(lastSuccessMs) || lastFailureMs > lastSuccessMs)
+    ? lastFailureMs + 30 * 60 * 1000
+    : null
+  const coolingDown = Number.isFinite(cooldownUntilMs) && (cooldownUntilMs as number) > now
+
+  return {
+    name: tool.name,
+    id: tool.id,
+    canonicalId: tool.canonicalId,
+    calls: rows.length,
+    successes: rows.filter((r) => r.success).length,
+    weightedCalls,
+    weightedSuccesses,
+    successScore,
+    stabilityScore: wilsonLowerBound(weightedSuccesses, weightedCalls),
+    confidence,
+    freshness,
+    averageDurationMs,
+    averageTokens,
+    lastObservedAt,
+    lastSuccessAt,
+    lastFailureAt,
+    cooldownUntil: coolingDown ? new Date(cooldownUntilMs as number).toISOString() : null,
+    coolingDown,
+    categoryStats,
+    agentStats,
+  }
+}
+
+function capabilityScore(profile: RouterProfile, category: string): number {
+  const stats = profile.categoryStats?.[category]
+  if (!stats || stats.calls <= 0) return profile.successScore
+  const categoryRate = bayesianRate(stats.successes, stats.calls, profile.successScore, 3)
+  const categoryConfidence = clamp01(1 - Math.exp(-stats.calls / 4))
+  return categoryRate * categoryConfidence + profile.successScore * (1 - categoryConfidence)
+}
+
+function latencyScore(averageDurationMs: number | null): number {
+  if (!Number.isFinite(averageDurationMs)) return 0.45
+  return clamp01(1 / (1 + (averageDurationMs as number) / 30000))
+}
+
+function tokenCostScore(averageTokens: number | null): number {
+  if (!Number.isFinite(averageTokens)) return 0.45
+  return clamp01(1 / (1 + (averageTokens as number) / 4000))
+}
+
+/** Score one profile for a task category, with explainable components. */
+export function scoreRoutingProfile(
+  profile: RouterProfile,
+  category: string,
+  weights: RoutingWeights = DEFAULT_WEIGHTS,
+): ScoredRouterProfile {
+  const components = {
+    success: clamp01(profile.successScore),
+    capability: clamp01(capabilityScore(profile, category)),
+    latency: latencyScore(profile.averageDurationMs),
+    tokenCost: tokenCostScore(profile.averageTokens),
+    freshness: clamp01(profile.freshness),
+    stability: clamp01(profile.stabilityScore),
+    confidence: clamp01(profile.confidence),
+  }
+  let weightedScore = 0
+  for (const [key, weight] of Object.entries(weights)) {
+    weightedScore += ((components as Record<string, number>)[key] ?? 0) * weight
+  }
+  // Cold start gets a small exploration chance; never let a zero-sample
+  // provider outrank a proven one.
+  const explorationBonus = 0.04 / Math.sqrt(profile.calls + 1)
+  // Cooling providers keep full components for explanation but rank at zero.
+  const score = profile.coolingDown ? 0 : clamp01(weightedScore + explorationBonus)
+  return {
+    ...profile,
+    category,
+    score: Number(score.toFixed(4)),
+    components: Object.fromEntries(Object.entries(components).map(([k, v]) => [k, Number(v.toFixed(4))])),
+    explorationBonus: Number(explorationBonus.toFixed(4)),
+    reason: profile.coolingDown
+      ? `冷却至${profile.cooldownUntil} · 最近失败${profile.lastFailureAt}`
+      : `成功${components.success.toFixed(2)} · 能力${components.capability.toFixed(2)} · 时延${components.latency.toFixed(2)} · Token成本${components.tokenCost.toFixed(2)} · 新鲜度${components.freshness.toFixed(2)} · 稳定性${components.stability.toFixed(2)} · 置信度${components.confidence.toFixed(2)}`,
+  }
+}
+
+/** Rank a set of provider profiles for one task, best first. */
+export function rankRoutingProfiles(
+  profiles: readonly RouterProfile[],
+  task: string,
+  weights: RoutingWeights = DEFAULT_WEIGHTS,
+): ScoredRouterProfile[] {
+  const category = classifyTask(task)
+  return (profiles || [])
+    .map((profile) => scoreRoutingProfile(profile, category, weights))
+    .sort((a, b) => b.score - a.score || b.confidence - a.confidence || a.name.localeCompare(b.name))
+}

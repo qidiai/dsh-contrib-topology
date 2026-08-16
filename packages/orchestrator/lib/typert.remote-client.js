@@ -30,6 +30,11 @@ const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_dispatch_result$schema 
   'coolingDown': z.boolean().readonly(),
 })).readonly().optional(),
 })
+const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_probe_result$schema = z.object({
+  'agents': z.string(),
+  'subagents': z.string(),
+  'hasInitiator': z.boolean(),
+})
 const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_snapshot_result$schema = z.object({
   'stats': z.object({
   'dispatches': z.number().readonly(),
@@ -85,6 +90,21 @@ export const TYPERT_REMOTE = {
       sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":58,"column":9},
     },
     {
+      id: '@qidiai/dsh-contrib-orchestrator#orchestrator/probe',
+      service: 'orchestrator',
+      namespace: 'orchestrator',
+      method: 'probe',
+      invocation: { kind: 'direct' },
+      parameters: [
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: '@qidiai/dsh-contrib-orchestrator#orchestrator/probe:result',
+        schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_probe_result$schema,
+      },
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":189,"column":3},
+    },
+    {
       id: '@qidiai/dsh-contrib-orchestrator#orchestrator/snapshot',
       service: 'orchestrator',
       namespace: 'orchestrator',
@@ -97,7 +117,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorSnapshot',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_snapshot_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":168,"column":3},
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":179,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-orchestrator#orchestrator/stats',
@@ -112,7 +132,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorStats',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_stats_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":156,"column":3},
+      sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":167,"column":3},
     },
   ],
 }

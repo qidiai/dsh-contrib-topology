@@ -42,6 +42,7 @@ var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, 
     if (target) Object.defineProperty(target, contextIn.name, descriptor);
     done = true;
 };
+import { existsSync } from 'node:fs';
 import * as mcpClient from '@deepseek-ai/dsh-mcp-client';
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings';
 import Schema from '@deepseek-ai/schemastery';
@@ -113,6 +114,23 @@ let McpBridgeGateway = (() => {
         }
         /** Spawn one mcp-client instance through the cordis plugin registry. */
         async spawn(server) {
+            // Preflight: a stdio command that does not exist (e.g. a path mangled to
+            // `????` by a non-UTF-8 input chain) would make the child die instantly
+            // with a bare MODULE_NOT_FOUND. Fail fast with an actionable error so the
+            // Bridge tab shows why instead of a silent no-op.
+            if (server.transport === 'stdio' && server.command !== undefined) {
+                const probe = server.command.startsWith('"') ? server.command.slice(1, -1) : server.command;
+                if (!existsSync(probe)) {
+                    this.registry.set({
+                        config: server,
+                        fiber: { dispose: () => undefined },
+                        status: 'failed',
+                        lastError: `mcp-bridge: stdio command not found: ${probe} — check the path (non-ASCII paths must survive UTF-8 end to end)`,
+                        updatedAt: new Date().toISOString(),
+                    });
+                    return;
+                }
+            }
             try {
                 // Shape the simplified bridge config into mcp-client's own Config union.
                 // failOnStartupError: true makes the INITIAL connect/sync failure reject

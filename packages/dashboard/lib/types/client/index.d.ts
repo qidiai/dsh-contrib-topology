@@ -1,8 +1,9 @@
 /** Browser client: register the suite dashboard tab into Web Plugins settings. */
 import type { ClientContext } from '@deepseek-ai/dsh-client-runtime/client';
 import { type DashboardLocaleKey } from './locales.ts';
-export type { DashboardTabInjected, DashboardTabProps, DashboardCards } from './DashboardTab.tsx';
+export type { DashboardTabInjected, DashboardTabProps } from './DashboardTab.tsx';
 export type { DashboardLocaleKey } from './locales.ts';
+export type { DashboardStatus } from '../types.ts';
 declare module '@deepseek-ai/dsh-client-ui-slots' {
     interface LocaleNamespaceMap {
         /** Suite dashboard copy. */

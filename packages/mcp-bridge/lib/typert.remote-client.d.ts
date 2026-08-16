@@ -3,16 +3,18 @@ import type {
   RemoteResult,
   TypertRemoteContribution,
 } from '@deepseek-ai/dsh-typert-protocol'
-import type { BridgeSnapshot, McpServerConfig } from '@qidiai/dsh-contrib-mcp-bridge/types'
+import type { BridgeProbe, BridgeSnapshot, McpServerConfig } from '@qidiai/dsh-contrib-mcp-bridge/types'
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$6d63702d627269646765 {
     addServer: (server: McpServerConfig) => Promise<RemoteResult<BridgeSnapshot>>
+    probe: () => Promise<RemoteResult<BridgeProbe>>
     removeServer: (serverName: string) => Promise<RemoteResult<BridgeSnapshot>>
     snapshot: () => Promise<RemoteResult<BridgeSnapshot>>
   }
   interface TypertRemoteMap {
     'mcp-bridge/addServer': (server: McpServerConfig) => Promise<RemoteResult<BridgeSnapshot>>
+    'mcp-bridge/probe': () => Promise<RemoteResult<BridgeProbe>>
     'mcp-bridge/removeServer': (serverName: string) => Promise<RemoteResult<BridgeSnapshot>>
     'mcp-bridge/snapshot': () => Promise<RemoteResult<BridgeSnapshot>>
   }

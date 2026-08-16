@@ -8,8 +8,8 @@
  * synthetic fixtures. `source` auto-detects MCP tools (`mcp__*`) so the
  * future MCP bridge is covered with zero changes here.
  */
-/** What produced the event. P2 adds 'subagent.dispatch'. */
-export type ObserveEventKind = 'tool.call' | 'llm.stream';
+/** What produced the event. 'subagent.dispatch' is the P2-reserved delegation kind. */
+export type ObserveEventKind = 'tool.call' | 'llm.stream' | 'subagent.dispatch';
 /** Reward signal for the future router. */
 export type ObserveOutcome = 'success' | 'error' | 'cancelled';
 /** Tool provenance; MCP-bridge tools self-identify via the mcp__ prefix. */

@@ -17,28 +17,28 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var BridgeTab_module_css_default = {
-			"stat": "_1qM5sW_stat",
-			"failed": "_1qM5sW_failed",
-			"err": "_1qM5sW_err",
-			"select": "_1qM5sW_select",
-			"refresh": "_1qM5sW_refresh",
-			"addBox": "_1qM5sW_addBox",
-			"row": "_1qM5sW_row",
 			"stopped": "_1qM5sW_stopped",
-			"list": "_1qM5sW_list",
 			"connected": "_1qM5sW_connected",
-			"name": "_1qM5sW_name",
-			"header": "_1qM5sW_header",
-			"tools": "_1qM5sW_tools",
-			"reconnecting": "_1qM5sW_reconnecting",
+			"status": "_1qM5sW_status",
 			"empty": "_1qM5sW_empty",
 			"error": "_1qM5sW_error",
-			"addBtn": "_1qM5sW_addBtn",
-			"title": "_1qM5sW_title",
+			"header": "_1qM5sW_header",
+			"select": "_1qM5sW_select",
+			"list": "_1qM5sW_list",
 			"root": "_1qM5sW_root",
+			"stat": "_1qM5sW_stat",
+			"refresh": "_1qM5sW_refresh",
+			"failed": "_1qM5sW_failed",
+			"err": "_1qM5sW_err",
+			"removeBtn": "_1qM5sW_removeBtn",
+			"title": "_1qM5sW_title",
 			"input": "_1qM5sW_input",
-			"status": "_1qM5sW_status",
-			"removeBtn": "_1qM5sW_removeBtn"
+			"tools": "_1qM5sW_tools",
+			"addBtn": "_1qM5sW_addBtn",
+			"addBox": "_1qM5sW_addBox",
+			"row": "_1qM5sW_row",
+			"name": "_1qM5sW_name",
+			"reconnecting": "_1qM5sW_reconnecting"
 		};
 		//#endregion
 		//#region lib/types/client/BridgeTab.js

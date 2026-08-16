@@ -120,10 +120,14 @@ let ObserveGateway = (() => {
         }
         store = (__runInitializers(this, _instanceExtraInitializers), new ObserveStore());
         config = DEFAULT_CONFIG;
+        /** Delegation start timestamps, keyed by subagent run id (paired start/end). */
+        runStarts = new Map();
         constructor(ctx) {
             super(ctx, 'observe');
             ctx.on('tools/execute', this.onToolExecute);
             ctx.on('llm/stream', this.onLlmStream);
+            ctx.on('subagent/start', this.onSubagentStart);
+            ctx.on('subagent/end', this.onSubagentEnd);
             // M4: the `ai-bridge-observe` user-settings section hot-reloads capacity
             // and the capture switches (the same seam the P2 router will reuse).
             installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
@@ -140,6 +144,34 @@ let ObserveGateway = (() => {
         applyConfig() {
             this.store.setMaxEvents(this.config.maxEvents);
         }
+        /** Record the start timestamp for a delegation, keyed by run id. */
+        onSubagentStart = (info) => {
+            this.runStarts.set(info.runId, Date.now());
+        };
+        /** Append the delegation outcome to the event timeline (P2 dispatch kind). */
+        onSubagentEnd = (info) => {
+            const startedAt = this.runStarts.get(info.runId);
+            this.runStarts.delete(info.runId);
+            if (!this.config.captureTools && !this.config.captureLlm)
+                return;
+            try {
+                const outcome = info.stopReason === 'completed' ? 'success' : 'error';
+                this.store.push({
+                    id: this.store.nextId(),
+                    kind: 'subagent.dispatch',
+                    name: info.provider,
+                    ...(agentKeyOf(info.id) ? { agent: agentKeyOf(info.id) } : {}),
+                    startedAt: new Date(startedAt ?? Date.now()).toISOString(),
+                    ...(startedAt === undefined ? {} : { durationMs: Date.now() - startedAt }),
+                    outcome,
+                    source: 'builtin',
+                    features: { local: info.local, stopReason: info.stopReason },
+                });
+            }
+            catch {
+                // contained by design
+            }
+        };
         /** Around-dispatch timing. Never touches exec.signal or the result. */
         onToolExecute = async (exec, next) => {
             const startedAt = Date.now();

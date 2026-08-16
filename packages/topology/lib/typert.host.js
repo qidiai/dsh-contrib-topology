@@ -7,6 +7,7 @@ const _deepseek_ai_dsh_contrib_topology_topology_graph_result$schema = z.object(
   'plugin': z.object({
   'id': z.string().readonly(),
   'name': z.string().readonly(),
+  'group': z.union([z.literal("core"), z.literal("contrib"), z.literal("third-party")]).readonly(),
   'enabled': z.boolean().readonly(),
   'fiberPhase': z.union([z.literal(null), z.literal("pending"), z.literal("loading"), z.literal("active"), z.literal("failed"), z.literal("unloading")]).readonly(),
   'injects': z.array(z.string()).readonly(),
@@ -19,11 +20,26 @@ const _deepseek_ai_dsh_contrib_topology_topology_graph_result$schema = z.object(
   'name': z.string().readonly(),
   'consumerCount': z.number().readonly(),
 }),
+}), z.object({
+  'kind': z.literal("subagent"),
+  'subagent': z.object({
+  'id': z.string().readonly(),
+  'provider': z.string().readonly(),
+  'outcome': z.union([z.literal("success"), z.literal("error"), z.literal("running")]).readonly(),
+  'durationMs': z.number().readonly().optional(),
+}),
+}), z.object({
+  'kind': z.literal("mcp"),
+  'mcp': z.object({
+  'id': z.string().readonly(),
+  'serverName': z.string().readonly(),
+  'toolCount': z.number().readonly(),
+}),
 })])).readonly(),
   'edges': z.array(z.object({
   'from': z.string().readonly(),
   'to': z.string().readonly(),
-  'kind': z.union([z.literal("injects"), z.literal("contains")]).readonly(),
+  'kind': z.union([z.literal("injects"), z.literal("contains"), z.literal("dispatch"), z.literal("provides-mcp")]).readonly(),
 })).readonly(),
   'capturedAt': z.string().readonly(),
 })
@@ -47,7 +63,7 @@ export const TYPERT = {
         typeSymbol: '@qidiai/dsh-contrib-topology/types#TopologySnapshot',
         schema: _deepseek_ai_dsh_contrib_topology_topology_graph_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/topology/src/host/index.ts","line":105,"column":3},
+      sourceLocation: {"file":"packages/contrib/topology/src/host/index.ts","line":172,"column":3},
     },
   ],
   model: {

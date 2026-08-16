@@ -47,6 +47,7 @@ export function OrchestratorTab({ snapshot, dispatch, t }: OrchestratorTabProps)
   const [agents, setAgents] = useState('')
   const [mode, setMode] = useState<OrchestratorMode>('parallel')
   const [busy, setBusy] = useState(false)
+  const [lastResult, setLastResult] = useState<OrchestratorResult | null>(null)
 
   const refresh = useCallback(async () => {
     try {
@@ -65,7 +66,7 @@ export function OrchestratorTab({ snapshot, dispatch, t }: OrchestratorTabProps)
     setError(null)
     try {
       const parsed = agents.split(',').map((s) => s.trim()).filter(Boolean)
-      await dispatch(task, parsed, mode)
+      setLastResult(await dispatch(task, parsed, mode))
       setTask('')
       await refresh()
     } catch (e) {
@@ -116,6 +117,21 @@ export function OrchestratorTab({ snapshot, dispatch, t }: OrchestratorTabProps)
           {busy ? '…' : t('btn.dispatch')}
         </button>
       </div>
+
+      {lastResult?.ranked !== undefined && (
+        <div className={styles.ranking}>
+          <div className={styles.rankTitle}>{t('rank.title')}</div>
+          {lastResult.ranked.map((entry, i) => (
+            <div key={entry.agent} className={styles.rankRow}>
+              <span className={styles.rankPos}>{i + 1}</span>
+              <span className={styles.rankName}>{entry.agent}</span>
+              <span className={styles.rankScore}>{t('rank.score')}: {entry.score.toFixed(4)}</span>
+              {entry.coolingDown && <span className={styles.cooling}>{t('rank.cooling')}</span>}
+              <span className={styles.rankReason} title={entry.reason}>{entry.reason}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className={styles.history}>
         <div className={styles.historyTitle}>{t('history.title')}</div>

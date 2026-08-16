@@ -50,6 +50,28 @@ import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol';
 import { BridgeRegistry } from "./registry.js";
 /** The `ai-bridge-mcp` user-settings namespace (hot-reload seam). */
 const NS = settingsNamespace('ai-bridge-mcp');
+/**
+ * Flatten an error into a diagnostic string, walking the `cause` chain so the
+ * Bridge tab shows the REAL underlying failure (e.g. `spawn ... ENOENT`,
+ * `EPERM`, MODULE_NOT_FOUND) instead of mcp-client's outer wrapper message.
+ */
+function describeError(error) {
+    const seen = new Set();
+    const parts = [];
+    let current = error;
+    while (current !== undefined && current !== null && !seen.has(current)) {
+        seen.add(current);
+        if (current instanceof Error) {
+            parts.push(current.message.length > 0 ? current.message : current.name);
+            current = current.cause;
+        }
+        else {
+            parts.push(String(current));
+            break;
+        }
+    }
+    return parts.length > 1 ? parts.join(' → ') : (parts[0] ?? String(error));
+}
 /** Composition defaults; the settings section overrides them at attach. */
 const DEFAULT_CONFIG = { servers: [] };
 /**
@@ -153,7 +175,7 @@ let McpBridgeGateway = (() => {
                     config: server,
                     fiber: { dispose: () => undefined },
                     status: 'failed',
-                    lastError: error instanceof Error ? error.message : String(error),
+                    lastError: describeError(error),
                     updatedAt: new Date().toISOString(),
                 });
             }

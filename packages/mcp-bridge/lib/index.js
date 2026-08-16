@@ -194,11 +194,13 @@ let McpBridgeGateway = (() => {
 					transport: "stdio",
 					serverName: server.serverName,
 					command: server.command ?? "",
-					args: [...server.args ?? []]
+					args: [...server.args ?? []],
+					failOnStartupError: true
 				} : {
 					transport: "streamable-http",
 					serverName: server.serverName,
-					url: server.url ?? ""
+					url: server.url ?? "",
+					failOnStartupError: true
 				};
 				const fiber = await this.ctx.plugin(mcpClient, mcpConfig);
 				this.registry.set({
@@ -246,7 +248,9 @@ let McpBridgeGateway = (() => {
 		}
 		/** Add one server at runtime (settings diff drives the actual spawn). */
 		async addServer(server) {
-			if (this.registry.has(server.serverName)) throw new Error(`mcp-bridge: serverName "${server.serverName}" already managed`);
+			const existing = this.registry.get(server.serverName);
+			if (existing !== void 0 && existing.status !== "failed") throw new Error(`mcp-bridge: serverName "${server.serverName}" already managed`);
+			if (existing !== void 0) this.registry.remove(server.serverName);
 			const next = { servers: [...this.config.servers.filter((s) => s.serverName !== server.serverName), server] };
 			this.config = next;
 			await this.applyConfig();

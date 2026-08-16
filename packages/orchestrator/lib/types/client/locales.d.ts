@@ -26,6 +26,9 @@ export declare const zh: {
     'mode.merge': string;
     'run.ok': string;
     'run.fail': string;
+    'rank.title': string;
+    'rank.score': string;
+    'rank.cooling': string;
 };
 /** Orchestrator locale key union. */
 export type OrchestratorLocaleKey = keyof typeof zh;
@@ -54,5 +57,8 @@ export declare const en: {
     'mode.merge': string;
     'run.ok': string;
     'run.fail': string;
+    'rank.title': string;
+    'rank.score': string;
+    'rank.cooling': string;
 };
 //# sourceMappingURL=locales.d.ts.map

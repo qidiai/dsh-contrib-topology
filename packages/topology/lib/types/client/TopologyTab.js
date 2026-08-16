@@ -12,7 +12,9 @@ const ROW_H = 28;
 const PAD_TOP = 16;
 const COL_PLUGIN_X = 20;
 const COL_SERVICE_X = 420;
-const WIDTH = 680;
+/** Runtime column: live subagent delegations and MCP servers. */
+const COL_RUNTIME_X = 640;
+const WIDTH = 920;
 /** Plugin column partitions, in render order. */
 const GROUP_ORDER = ['core', 'contrib', 'third-party'];
 const GROUP_LABEL = {
@@ -101,6 +103,16 @@ export function TopologyTab({ graph, t }) {
             services.forEach((s, i) => {
                 map.set(s.id, { x: COL_SERVICE_X, y: PAD_TOP + i * ROW_H });
             });
+            const runtime = snapshot.nodes.flatMap((n) => {
+                if (n.kind === 'subagent')
+                    return [{ id: n.subagent.id, label: n.subagent.provider }];
+                if (n.kind === 'mcp')
+                    return [{ id: n.mcp.id, label: n.mcp.serverName }];
+                return [];
+            });
+            runtime.forEach((r, i) => {
+                map.set(r.id, { x: COL_RUNTIME_X, y: PAD_TOP + i * ROW_H });
+            });
         }
         return map;
     }, [pluginRows, snapshot]);
@@ -127,8 +139,10 @@ export function TopologyTab({ graph, t }) {
     }
     const pluginCount = snapshot.nodes.filter((n) => n.kind === 'plugin').length;
     const serviceCount = snapshot.nodes.filter((n) => n.kind === 'service').length;
-    const height = PAD_TOP * 2 + Math.max(pluginRows.length, serviceCount) * ROW_H;
-    return (_jsxs("div", { className: styles.root, children: [_jsxs("div", { className: styles.header, children: [_jsx("span", { className: styles.title, children: t('title') }), _jsxs("span", { className: styles.stat, children: [t('stats.plugins'), ": ", pluginCount] }), _jsxs("span", { className: styles.stat, children: [t('stats.services'), ": ", serviceCount] }), _jsxs("span", { className: styles.stat, children: [t('stats.edges'), ": ", snapshot.edges.length] }), _jsx("button", { className: styles.refresh, type: "button", onClick: () => void refresh(), children: t('refresh') })] }), _jsxs("svg", { viewBox: `0 0 ${WIDTH} ${height}`, className: styles.canvas, children: [snapshot.edges.map((edge, i) => {
+    const subagentCount = snapshot.nodes.filter((n) => n.kind === 'subagent').length;
+    const mcpCount = snapshot.nodes.filter((n) => n.kind === 'mcp').length;
+    const height = PAD_TOP * 2 + Math.max(pluginRows.length, serviceCount, subagentCount + mcpCount) * ROW_H;
+    return (_jsxs("div", { className: styles.root, children: [_jsxs("div", { className: styles.header, children: [_jsx("span", { className: styles.title, children: t('title') }), _jsxs("span", { className: styles.stat, children: [t('stats.plugins'), ": ", pluginCount] }), _jsxs("span", { className: styles.stat, children: [t('stats.services'), ": ", serviceCount] }), _jsxs("span", { className: styles.stat, children: [t('stats.subagents'), ": ", subagentCount] }), _jsxs("span", { className: styles.stat, children: [t('stats.mcp'), ": ", mcpCount] }), _jsxs("span", { className: styles.stat, children: [t('stats.edges'), ": ", snapshot.edges.length] }), _jsx("button", { className: styles.refresh, type: "button", onClick: () => void refresh(), children: t('refresh') })] }), _jsxs("svg", { viewBox: `0 0 ${WIDTH} ${height}`, className: styles.canvas, children: [snapshot.edges.map((edge, i) => {
                         const a = positions.get(edge.from);
                         const b = positions.get(edge.to);
                         if (!a || !b)
@@ -141,7 +155,11 @@ export function TopologyTab({ graph, t }) {
                         const lit = isEdgeLit(edge);
                         // A disabled plugin still declares injects; render them dashed.
                         const disabledInjects = edge.kind === 'injects' && enabledById.get(edge.from) === false;
-                        return (_jsx("path", { d: `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`, className: `${styles.edge} ${edge.kind === 'contains' ? styles.edgeContains : ''} ${disabledInjects ? styles.edgeDisabled : ''} ${lit ? styles.edgeLit : ''} ${focus && !lit ? styles.edgeDim : ''}` }, i));
+                        const edgeKindClass = edge.kind === 'contains' ? styles.edgeContains
+                            : edge.kind === 'dispatch' ? styles.edgeDispatch
+                                : edge.kind === 'provides-mcp' ? styles.edgeMcp
+                                    : '';
+                        return (_jsx("path", { d: `M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`, className: `${styles.edge} ${edgeKindClass} ${disabledInjects ? styles.edgeDisabled : ''} ${lit ? styles.edgeLit : ''} ${focus && !lit ? styles.edgeDim : ''}` }, i));
                     }), pluginRows.map((row, i) => {
                         if (row.kind === 'header') {
                             return (_jsx("text", { x: COL_PLUGIN_X, y: PAD_TOP + i * ROW_H + ROW_H / 2 + 3, className: styles.groupHeader, children: GROUP_LABEL[row.group] ?? row.group }, `group:${row.group}`));
@@ -158,6 +176,23 @@ export function TopologyTab({ graph, t }) {
                         if (!pos)
                             return null;
                         return (_jsxs("g", { transform: `translate(${pos.x}, ${pos.y})`, className: `${styles.node} ${focus === node.service.id ? styles.nodeFocus : ''}`, onMouseEnter: () => setHovered(node.service.id), onMouseLeave: () => setHovered(null), onClick: () => setSelected((cur) => (cur === node.service.id ? null : node.service.id)), children: [_jsx("rect", { width: 220, height: ROW_H - 4, rx: 5, className: styles.nodeService }), _jsx("text", { x: 8, y: ROW_H / 2 + 3, className: styles.label, children: node.service.name.length > 26 ? `${node.service.name.slice(0, 24)}…` : node.service.name }), _jsx("text", { x: 212, y: ROW_H / 2 + 3, className: styles.badge, textAnchor: "end", children: node.service.consumerCount })] }, node.service.id));
+                    }), snapshot.nodes.filter((n) => n.kind === 'subagent').map((node) => {
+                        if (node.kind !== 'subagent')
+                            return null;
+                        const pos = positions.get(node.subagent.id);
+                        if (!pos)
+                            return null;
+                        const outcomeClass = node.subagent.outcome === 'success' ? styles.nodeSubagentOk
+                            : node.subagent.outcome === 'error' ? styles.nodeSubagentErr
+                                : styles.nodeSubagentRun;
+                        return (_jsxs("g", { transform: `translate(${pos.x}, ${pos.y})`, className: `${styles.node} ${focus === node.subagent.id ? styles.nodeFocus : ''}`, onMouseEnter: () => setHovered(node.subagent.id), onMouseLeave: () => setHovered(null), onClick: () => setSelected((cur) => (cur === node.subagent.id ? null : node.subagent.id)), children: [_jsx("rect", { width: 220, height: ROW_H - 4, rx: 5, className: outcomeClass }), _jsx("text", { x: 8, y: ROW_H / 2 + 3, className: styles.label, children: node.subagent.provider.length > 26 ? `${node.subagent.provider.slice(0, 24)}…` : node.subagent.provider }), _jsx("text", { x: 212, y: ROW_H / 2 + 3, className: styles.badge, textAnchor: "end", children: node.subagent.outcome === 'running' ? '…' : `${node.subagent.durationMs ?? 0}ms` })] }, node.subagent.id));
+                    }), snapshot.nodes.filter((n) => n.kind === 'mcp').map((node) => {
+                        if (node.kind !== 'mcp')
+                            return null;
+                        const pos = positions.get(node.mcp.id);
+                        if (!pos)
+                            return null;
+                        return (_jsxs("g", { transform: `translate(${pos.x}, ${pos.y})`, className: `${styles.node} ${focus === node.mcp.id ? styles.nodeFocus : ''}`, onMouseEnter: () => setHovered(node.mcp.id), onMouseLeave: () => setHovered(null), onClick: () => setSelected((cur) => (cur === node.mcp.id ? null : node.mcp.id)), children: [_jsx("rect", { width: 220, height: ROW_H - 4, rx: 5, className: styles.nodeMcp }), _jsx("text", { x: 8, y: ROW_H / 2 + 3, className: styles.label, children: node.mcp.serverName.length > 22 ? `${node.mcp.serverName.slice(0, 20)}…` : node.mcp.serverName }), _jsxs("text", { x: 212, y: ROW_H / 2 + 3, className: styles.badge, textAnchor: "end", children: [node.mcp.toolCount, "\u21B4"] })] }, node.mcp.id));
                     })] }), _jsxs("div", { className: styles.legend, children: [_jsxs("span", { children: [t('legend.plugin'), ": \u25A0"] }), _jsxs("span", { children: [t('legend.service'), ": \u25A0"] }), _jsxs("span", { children: [t('legend.active'), ": \u25A0"] }), _jsxs("span", { children: [t('legend.failed'), ": \u25A0"] })] })] }));
 }
 //# sourceMappingURL=TopologyTab.js.map

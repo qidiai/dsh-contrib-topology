@@ -3,7 +3,7 @@ import type {
   RemoteResult,
   TypertRemoteContribution,
 } from '@deepseek-ai/dsh-typert-protocol'
-import type { ObserveSnapshot, ObserveStats } from '@deepseek-ai/dsh-contrib-observe/types'
+import type { ObserveSnapshot, ObserveStats } from '@qidiai/dsh-contrib-observe/types'
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$6f627365727665 {

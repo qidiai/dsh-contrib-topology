@@ -32,13 +32,13 @@ const _deepseek_ai_dsh_contrib_observe_observe_stats_result$schema = z.object({
 })
 
 export const TYPERT = {
-  package: '@deepseek-ai/dsh-contrib-observe',
+  package: '@qidiai/dsh-contrib-observe',
   face: 'host',
   schemas: [
   ],
   invocations: [
     {
-      id: '@deepseek-ai/dsh-contrib-observe#observe/clear',
+      id: '@qidiai/dsh-contrib-observe#observe/clear',
       service: 'observe',
       namespace: 'observe',
       method: 'clear',
@@ -47,13 +47,13 @@ export const TYPERT = {
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-observe#observe/clear:result',
+        typeSymbol: '@qidiai/dsh-contrib-observe#observe/clear:result',
         schema: _deepseek_ai_dsh_contrib_observe_observe_clear_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":180,"column":3},
     },
     {
-      id: '@deepseek-ai/dsh-contrib-observe#observe/snapshot',
+      id: '@qidiai/dsh-contrib-observe#observe/snapshot',
       service: 'observe',
       namespace: 'observe',
       method: 'snapshot',
@@ -62,13 +62,13 @@ export const TYPERT = {
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-observe/types#ObserveSnapshot',
+        typeSymbol: '@qidiai/dsh-contrib-observe/types#ObserveSnapshot',
         schema: _deepseek_ai_dsh_contrib_observe_observe_snapshot_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":168,"column":3},
     },
     {
-      id: '@deepseek-ai/dsh-contrib-observe#observe/stats',
+      id: '@qidiai/dsh-contrib-observe#observe/stats',
       service: 'observe',
       namespace: 'observe',
       method: 'stats',
@@ -77,7 +77,7 @@ export const TYPERT = {
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-observe/types#ObserveStats',
+        typeSymbol: '@qidiai/dsh-contrib-observe/types#ObserveStats',
         schema: _deepseek_ai_dsh_contrib_observe_observe_stats_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":174,"column":3},

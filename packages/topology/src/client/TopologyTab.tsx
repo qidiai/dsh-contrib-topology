@@ -26,7 +26,9 @@ const ROW_H = 28
 const PAD_TOP = 16
 const COL_PLUGIN_X = 20
 const COL_SERVICE_X = 420
-const WIDTH = 680
+/** Runtime column: live subagent delegations and MCP servers. */
+const COL_RUNTIME_X = 640
+const WIDTH = 920
 
 /** Plugin column partitions, in render order. */
 const GROUP_ORDER = ['core', 'contrib', 'third-party'] as const
@@ -120,6 +122,14 @@ export function TopologyTab({ graph, t }: TopologyTabProps): ReactNode {
       services.forEach((s, i) => {
         map.set(s.id, { x: COL_SERVICE_X, y: PAD_TOP + i * ROW_H })
       })
+      const runtime = snapshot.nodes.flatMap((n) => {
+        if (n.kind === 'subagent') return [{ id: n.subagent.id, label: n.subagent.provider }]
+        if (n.kind === 'mcp') return [{ id: n.mcp.id, label: n.mcp.serverName }]
+        return []
+      })
+      runtime.forEach((r, i) => {
+        map.set(r.id, { x: COL_RUNTIME_X, y: PAD_TOP + i * ROW_H })
+      })
     }
     return map
   }, [pluginRows, snapshot])
@@ -148,7 +158,9 @@ export function TopologyTab({ graph, t }: TopologyTabProps): ReactNode {
 
   const pluginCount = snapshot.nodes.filter((n) => n.kind === 'plugin').length
   const serviceCount = snapshot.nodes.filter((n) => n.kind === 'service').length
-  const height = PAD_TOP * 2 + Math.max(pluginRows.length, serviceCount) * ROW_H
+  const subagentCount = snapshot.nodes.filter((n) => n.kind === 'subagent').length
+  const mcpCount = snapshot.nodes.filter((n) => n.kind === 'mcp').length
+  const height = PAD_TOP * 2 + Math.max(pluginRows.length, serviceCount, subagentCount + mcpCount) * ROW_H
 
   return (
     <div className={styles.root}>
@@ -156,6 +168,8 @@ export function TopologyTab({ graph, t }: TopologyTabProps): ReactNode {
         <span className={styles.title}>{t('title')}</span>
         <span className={styles.stat}>{t('stats.plugins')}: {pluginCount}</span>
         <span className={styles.stat}>{t('stats.services')}: {serviceCount}</span>
+        <span className={styles.stat}>{t('stats.subagents')}: {subagentCount}</span>
+        <span className={styles.stat}>{t('stats.mcp')}: {mcpCount}</span>
         <span className={styles.stat}>{t('stats.edges')}: {snapshot.edges.length}</span>
         <button className={styles.refresh} type="button" onClick={() => void refresh()}>{t('refresh')}</button>
       </div>
@@ -172,11 +186,15 @@ export function TopologyTab({ graph, t }: TopologyTabProps): ReactNode {
           const lit = isEdgeLit(edge)
           // A disabled plugin still declares injects; render them dashed.
           const disabledInjects = edge.kind === 'injects' && enabledById.get(edge.from) === false
+          const edgeKindClass = edge.kind === 'contains' ? styles.edgeContains
+            : edge.kind === 'dispatch' ? styles.edgeDispatch
+            : edge.kind === 'provides-mcp' ? styles.edgeMcp
+            : ''
           return (
             <path
               key={i}
               d={`M ${x1} ${y1} C ${mx} ${y1}, ${mx} ${y2}, ${x2} ${y2}`}
-              className={`${styles.edge} ${edge.kind === 'contains' ? styles.edgeContains : ''} ${disabledInjects ? styles.edgeDisabled : ''} ${lit ? styles.edgeLit : ''} ${focus && !lit ? styles.edgeDim : ''}`}
+              className={`${styles.edge} ${edgeKindClass} ${disabledInjects ? styles.edgeDisabled : ''} ${lit ? styles.edgeLit : ''} ${focus && !lit ? styles.edgeDim : ''}`}
             />
           )
         })}
@@ -234,6 +252,55 @@ export function TopologyTab({ graph, t }: TopologyTabProps): ReactNode {
               </text>
               <text x={212} y={ROW_H / 2 + 3} className={styles.badge} textAnchor="end">
                 {node.service.consumerCount}
+              </text>
+            </g>
+          )
+        })}
+        {snapshot.nodes.filter((n) => n.kind === 'subagent').map((node) => {
+          if (node.kind !== 'subagent') return null
+          const pos = positions.get(node.subagent.id)
+          if (!pos) return null
+          const outcomeClass = node.subagent.outcome === 'success' ? styles.nodeSubagentOk
+            : node.subagent.outcome === 'error' ? styles.nodeSubagentErr
+            : styles.nodeSubagentRun
+          return (
+            <g
+              key={node.subagent.id}
+              transform={`translate(${pos.x}, ${pos.y})`}
+              className={`${styles.node} ${focus === node.subagent.id ? styles.nodeFocus : ''}`}
+              onMouseEnter={() => setHovered(node.subagent.id)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => setSelected((cur) => (cur === node.subagent.id ? null : node.subagent.id))}
+            >
+              <rect width={220} height={ROW_H - 4} rx={5} className={outcomeClass} />
+              <text x={8} y={ROW_H / 2 + 3} className={styles.label}>
+                {node.subagent.provider.length > 26 ? `${node.subagent.provider.slice(0, 24)}…` : node.subagent.provider}
+              </text>
+              <text x={212} y={ROW_H / 2 + 3} className={styles.badge} textAnchor="end">
+                {node.subagent.outcome === 'running' ? '…' : `${node.subagent.durationMs ?? 0}ms`}
+              </text>
+            </g>
+          )
+        })}
+        {snapshot.nodes.filter((n) => n.kind === 'mcp').map((node) => {
+          if (node.kind !== 'mcp') return null
+          const pos = positions.get(node.mcp.id)
+          if (!pos) return null
+          return (
+            <g
+              key={node.mcp.id}
+              transform={`translate(${pos.x}, ${pos.y})`}
+              className={`${styles.node} ${focus === node.mcp.id ? styles.nodeFocus : ''}`}
+              onMouseEnter={() => setHovered(node.mcp.id)}
+              onMouseLeave={() => setHovered(null)}
+              onClick={() => setSelected((cur) => (cur === node.mcp.id ? null : node.mcp.id))}
+            >
+              <rect width={220} height={ROW_H - 4} rx={5} className={styles.nodeMcp} />
+              <text x={8} y={ROW_H / 2 + 3} className={styles.label}>
+                {node.mcp.serverName.length > 22 ? `${node.mcp.serverName.slice(0, 20)}…` : node.mcp.serverName}
+              </text>
+              <text x={212} y={ROW_H / 2 + 3} className={styles.badge} textAnchor="end">
+                {node.mcp.toolCount}↴
               </text>
             </g>
           )

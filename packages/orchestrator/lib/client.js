@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
 		let react_jsx_runtime = require("react/jsx-runtime");
 		let react = require("react");
 		//#region \0dsh-css:C:\Users\28970\WorkBuddy\2026-08-14-08-45-40\deepseek-harness\packages\contrib\orchestrator\src\client\OrchestratorTab.module.css.mjs
-		const css = ".TA5uxW_root{flex-direction:column;gap:12px;padding:12px 0;display:flex}.TA5uxW_header{flex-wrap:wrap;align-items:baseline;gap:16px;display:flex}.TA5uxW_title{font-size:14px;font-weight:600}.TA5uxW_stat{opacity:.7;font-size:12px}.TA5uxW_refresh{border:1px solid var(--dsh-border,#d0d7de);cursor:pointer;background:0 0;border-radius:6px;margin-left:auto;padding:4px 10px;font-size:12px}.TA5uxW_dispatchBox{flex-wrap:wrap;gap:8px;display:flex}.TA5uxW_taskInput{border:1px solid var(--dsh-border,#d0d7de);background:0 0;border-radius:6px;flex:200px;padding:5px 8px;font-size:12px}.TA5uxW_modeSelect{border:1px solid var(--dsh-border,#d0d7de);background:0 0;border-radius:6px;padding:5px 8px;font-size:12px}.TA5uxW_dispatchBtn{color:#2f6feb;cursor:pointer;background:0 0;border:1px solid #2f6feb;border-radius:6px;padding:5px 12px;font-size:12px}.TA5uxW_dispatchBtn:disabled{opacity:.4;cursor:default}.TA5uxW_history{border:1px solid var(--dsh-border,#d0d7de);background:var(--dsh-canvas-bg,#fafbfc);border-radius:8px;flex-direction:column;max-height:320px;display:flex;overflow-y:auto}.TA5uxW_historyTitle{text-transform:uppercase;letter-spacing:.4px;opacity:.6;padding:8px 12px 4px;font-size:11px;font-weight:600}.TA5uxW_historyRow{border-bottom:1px solid var(--dsh-border,#eef1f4);flex-wrap:wrap;align-items:center;gap:10px;padding:6px 12px;font-size:12px;display:flex}.TA5uxW_historyRow:last-child{border-bottom:none}.TA5uxW_historyMode{color:#39475e;background:#e3e9f5;border-radius:4px;flex-shrink:0;padding:1px 6px;font-size:10px}.TA5uxW_historyTask{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:120px;overflow:hidden}.TA5uxW_historyWinner{opacity:.7;flex-shrink:0;font-size:11px}.TA5uxW_historyOk{border-radius:4px;flex-shrink:0;padding:1px 6px;font-size:10px}.TA5uxW_ok{color:#1a7f37;background:#dafbe1}.TA5uxW_fail{color:#cf222e;background:#ffebe9}.TA5uxW_historyDuration{opacity:.6;font-variant-numeric:tabular-nums;flex-shrink:0;font-size:11px}.TA5uxW_empty{opacity:.6;padding:12px;font-size:12px}.TA5uxW_error{color:#c0392b;font-size:13px}";
+		const css = ".TA5uxW_root{flex-direction:column;gap:12px;padding:12px 0;display:flex}.TA5uxW_header{flex-wrap:wrap;align-items:baseline;gap:16px;display:flex}.TA5uxW_title{font-size:14px;font-weight:600}.TA5uxW_stat{opacity:.7;font-size:12px}.TA5uxW_refresh{border:1px solid var(--dsh-border,#d0d7de);cursor:pointer;background:0 0;border-radius:6px;margin-left:auto;padding:4px 10px;font-size:12px}.TA5uxW_dispatchBox{flex-wrap:wrap;gap:8px;display:flex}.TA5uxW_taskInput{border:1px solid var(--dsh-border,#d0d7de);background:0 0;border-radius:6px;flex:200px;padding:5px 8px;font-size:12px}.TA5uxW_modeSelect{border:1px solid var(--dsh-border,#d0d7de);background:0 0;border-radius:6px;padding:5px 8px;font-size:12px}.TA5uxW_dispatchBtn{color:#2f6feb;cursor:pointer;background:0 0;border:1px solid #2f6feb;border-radius:6px;padding:5px 12px;font-size:12px}.TA5uxW_dispatchBtn:disabled{opacity:.4;cursor:default}.TA5uxW_history{border:1px solid var(--dsh-border,#d0d7de);background:var(--dsh-canvas-bg,#fafbfc);border-radius:8px;flex-direction:column;max-height:320px;display:flex;overflow-y:auto}.TA5uxW_historyTitle{text-transform:uppercase;letter-spacing:.4px;opacity:.6;padding:8px 12px 4px;font-size:11px;font-weight:600}.TA5uxW_historyRow{border-bottom:1px solid var(--dsh-border,#eef1f4);flex-wrap:wrap;align-items:center;gap:10px;padding:6px 12px;font-size:12px;display:flex}.TA5uxW_historyRow:last-child{border-bottom:none}.TA5uxW_historyMode{color:#39475e;background:#e3e9f5;border-radius:4px;flex-shrink:0;padding:1px 6px;font-size:10px}.TA5uxW_historyTask{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:120px;overflow:hidden}.TA5uxW_historyWinner{opacity:.7;flex-shrink:0;font-size:11px}.TA5uxW_historyOk{border-radius:4px;flex-shrink:0;padding:1px 6px;font-size:10px}.TA5uxW_ok{color:#1a7f37;background:#dafbe1}.TA5uxW_fail{color:#cf222e;background:#ffebe9}.TA5uxW_historyDuration{opacity:.6;font-variant-numeric:tabular-nums;flex-shrink:0;font-size:11px}.TA5uxW_ranking{border:1px solid var(--dsh-border,#d0d7de);background:var(--dsh-canvas-bg,#fafbfc);border-radius:8px;flex-direction:column;display:flex}.TA5uxW_rankTitle{text-transform:uppercase;letter-spacing:.4px;opacity:.6;padding:8px 12px 4px;font-size:11px;font-weight:600}.TA5uxW_rankRow{border-bottom:1px solid var(--dsh-border,#eef1f4);flex-wrap:wrap;align-items:center;gap:10px;padding:6px 12px;font-size:12px;display:flex}.TA5uxW_rankRow:last-child{border-bottom:none}.TA5uxW_rankPos{text-align:center;opacity:.6;flex-shrink:0;width:18px;font-weight:600}.TA5uxW_rankName{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:120px;font-family:ui-monospace,monospace;overflow:hidden}.TA5uxW_rankScore{font-variant-numeric:tabular-nums;flex-shrink:0}.TA5uxW_rankReason{opacity:.6;text-overflow:ellipsis;white-space:nowrap;flex-basis:100%;font-size:11px;overflow:hidden}.TA5uxW_cooling{color:#7c6a12;border:1px solid #c9a227;border-radius:4px;flex-shrink:0;padding:1px 6px;font-size:10px}.TA5uxW_empty{opacity:.6;padding:12px;font-size:12px}.TA5uxW_error{color:#c0392b;font-size:13px}";
 		const tagId = "@qidiai/dsh-contrib-orchestrator/OrchestratorTab.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
@@ -17,27 +17,35 @@ window.__ModuleLoader__.load({
 			document.head.appendChild(tag);
 		}
 		var OrchestratorTab_module_css_default = {
+			"historyTask": "TA5uxW_historyTask",
+			"stat": "TA5uxW_stat",
+			"rankRow": "TA5uxW_rankRow",
+			"historyMode": "TA5uxW_historyMode",
+			"historyDuration": "TA5uxW_historyDuration",
+			"root": "TA5uxW_root",
+			"title": "TA5uxW_title",
 			"taskInput": "TA5uxW_taskInput",
+			"historyRow": "TA5uxW_historyRow",
+			"rankPos": "TA5uxW_rankPos",
+			"rankReason": "TA5uxW_rankReason",
+			"historyWinner": "TA5uxW_historyWinner",
+			"rankName": "TA5uxW_rankName",
+			"empty": "TA5uxW_empty",
+			"fail": "TA5uxW_fail",
+			"cooling": "TA5uxW_cooling",
+			"rankScore": "TA5uxW_rankScore",
+			"dispatchBtn": "TA5uxW_dispatchBtn",
+			"ok": "TA5uxW_ok",
+			"modeSelect": "TA5uxW_modeSelect",
+			"history": "TA5uxW_history",
+			"refresh": "TA5uxW_refresh",
+			"dispatchBox": "TA5uxW_dispatchBox",
 			"historyTitle": "TA5uxW_historyTitle",
 			"historyOk": "TA5uxW_historyOk",
+			"ranking": "TA5uxW_ranking",
+			"rankTitle": "TA5uxW_rankTitle",
 			"header": "TA5uxW_header",
-			"dispatchBox": "TA5uxW_dispatchBox",
-			"root": "TA5uxW_root",
-			"stat": "TA5uxW_stat",
-			"historyRow": "TA5uxW_historyRow",
-			"historyDuration": "TA5uxW_historyDuration",
-			"historyMode": "TA5uxW_historyMode",
-			"refresh": "TA5uxW_refresh",
-			"modeSelect": "TA5uxW_modeSelect",
-			"dispatchBtn": "TA5uxW_dispatchBtn",
-			"empty": "TA5uxW_empty",
-			"historyWinner": "TA5uxW_historyWinner",
-			"title": "TA5uxW_title",
-			"error": "TA5uxW_error",
-			"fail": "TA5uxW_fail",
-			"historyTask": "TA5uxW_historyTask",
-			"ok": "TA5uxW_ok",
-			"history": "TA5uxW_history"
+			"error": "TA5uxW_error"
 		};
 		//#endregion
 		//#region lib/types/client/OrchestratorTab.js
@@ -74,6 +82,7 @@ window.__ModuleLoader__.load({
 			const [agents, setAgents] = (0, react.useState)("");
 			const [mode, setMode] = (0, react.useState)("parallel");
 			const [busy, setBusy] = (0, react.useState)(false);
+			const [lastResult, setLastResult] = (0, react.useState)(null);
 			const refresh = (0, react.useCallback)(async () => {
 				try {
 					setData(await snapshot());
@@ -90,7 +99,7 @@ window.__ModuleLoader__.load({
 				setBusy(true);
 				setError(null);
 				try {
-					await dispatch(task, agents.split(",").map((s) => s.trim()).filter(Boolean), mode);
+					setLastResult(await dispatch(task, agents.split(",").map((s) => s.trim()).filter(Boolean), mode));
 					setTask("");
 					await refresh();
 				} catch (e) {
@@ -197,6 +206,42 @@ window.__ModuleLoader__.load({
 							})
 						]
 					}),
+					lastResult?.ranked !== void 0 && (0, react_jsx_runtime.jsxs)("div", {
+						className: OrchestratorTab_module_css_default.ranking,
+						children: [(0, react_jsx_runtime.jsx)("div", {
+							className: OrchestratorTab_module_css_default.rankTitle,
+							children: t("rank.title")
+						}), lastResult.ranked.map((entry, i) => (0, react_jsx_runtime.jsxs)("div", {
+							className: OrchestratorTab_module_css_default.rankRow,
+							children: [
+								(0, react_jsx_runtime.jsx)("span", {
+									className: OrchestratorTab_module_css_default.rankPos,
+									children: i + 1
+								}),
+								(0, react_jsx_runtime.jsx)("span", {
+									className: OrchestratorTab_module_css_default.rankName,
+									children: entry.agent
+								}),
+								(0, react_jsx_runtime.jsxs)("span", {
+									className: OrchestratorTab_module_css_default.rankScore,
+									children: [
+										t("rank.score"),
+										": ",
+										entry.score.toFixed(4)
+									]
+								}),
+								entry.coolingDown && (0, react_jsx_runtime.jsx)("span", {
+									className: OrchestratorTab_module_css_default.cooling,
+									children: t("rank.cooling")
+								}),
+								(0, react_jsx_runtime.jsx)("span", {
+									className: OrchestratorTab_module_css_default.rankReason,
+									title: entry.reason,
+									children: entry.reason
+								})
+							]
+						}, entry.agent))]
+					}),
 					(0, react_jsx_runtime.jsxs)("div", {
 						className: OrchestratorTab_module_css_default.history,
 						children: [
@@ -272,7 +317,10 @@ window.__ModuleLoader__.load({
 			"mode.cascade": "级联",
 			"mode.merge": "合并",
 			"run.ok": "成",
-			"run.fail": "败"
+			"run.fail": "败",
+			"rank.title": "贝叶斯排序依据",
+			"rank.score": "得分",
+			"rank.cooling": "冷却中"
 		};
 		/** English dictionary checked against the Chinese key set. */
 		const en = {
@@ -298,7 +346,10 @@ window.__ModuleLoader__.load({
 			"mode.cascade": "Cascade",
 			"mode.merge": "Merge",
 			"run.ok": "OK",
-			"run.fail": "Fail"
+			"run.fail": "Fail",
+			"rank.title": "Bayesian ranking evidence",
+			"rank.score": "Score",
+			"rank.cooling": "Cooling"
 		};
 		//#endregion
 		//#region lib/types/client/index.js

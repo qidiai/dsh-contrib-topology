@@ -32,6 +32,12 @@ export interface OrchestratorRequest {
   readonly retryCount?: number
   /** Optional task hint used by the router seam (defaults to the task text). */
   readonly routeHint?: string
+  /**
+   * Optional session id whose live agent becomes the delegating parent.
+   * Required by the subagent providers for lineage/depth; when absent the
+   * gateway falls back to `agents.currentInitiator()`.
+   */
+  readonly parentSessionId?: string
 }
 
 /** Result of one dispatch. */

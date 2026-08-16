@@ -8,11 +8,13 @@ import type { OrchestratorRequest, OrchestratorResult, OrchestratorSnapshot, Orc
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$6f7263686573747261746f72 {
     dispatch: (request: OrchestratorRequest) => Promise<RemoteResult<OrchestratorResult>>
+    probe: () => Promise<RemoteResult<{ agents: string; subagents: string; hasInitiator: boolean; }>>
     snapshot: () => Promise<RemoteResult<OrchestratorSnapshot>>
     stats: () => Promise<RemoteResult<OrchestratorStats>>
   }
   interface TypertRemoteMap {
     'orchestrator/dispatch': (request: OrchestratorRequest) => Promise<RemoteResult<OrchestratorResult>>
+    'orchestrator/probe': () => Promise<RemoteResult<{ agents: string; subagents: string; hasInitiator: boolean; }>>
     'orchestrator/snapshot': () => Promise<RemoteResult<OrchestratorSnapshot>>
     'orchestrator/stats': () => Promise<RemoteResult<OrchestratorStats>>
   }

@@ -1,5 +1,5 @@
 window.__ModuleLoader__.load({
-	id: "@deepseek-ai/dsh-contrib-mcp-bridge",
+	id: "@qidiai/dsh-contrib-mcp-bridge",
 	factory: (require) => {
 		var module = { exports: {} };
 		var exports = module.exports;
@@ -8,10 +8,10 @@ window.__ModuleLoader__.load({
 		let react = require("react");
 		//#region \0dsh-css:C:\Users\28970\WorkBuddy\2026-08-14-08-45-40\deepseek-harness\packages\contrib\mcp-bridge\src\client\BridgeTab.module.css.mjs
 		const css = "._1qM5sW_root{flex-direction:column;gap:12px;padding:12px 0;display:flex}._1qM5sW_header{flex-wrap:wrap;align-items:baseline;gap:16px;display:flex}._1qM5sW_title{font-size:14px;font-weight:600}._1qM5sW_stat{opacity:.7;font-size:12px}._1qM5sW_refresh{border:1px solid var(--dsh-border,#d0d7de);cursor:pointer;background:0 0;border-radius:6px;margin-left:auto;padding:4px 10px;font-size:12px}._1qM5sW_addBox{flex-wrap:wrap;gap:8px;display:flex}._1qM5sW_input{border:1px solid var(--dsh-border,#d0d7de);background:0 0;border-radius:6px;flex:160px;padding:5px 8px;font-size:12px}._1qM5sW_select{border:1px solid var(--dsh-border,#d0d7de);background:0 0;border-radius:6px;padding:5px 8px;font-size:12px}._1qM5sW_addBtn{color:#2f6feb;cursor:pointer;background:0 0;border:1px solid #2f6feb;border-radius:6px;padding:5px 12px;font-size:12px}._1qM5sW_addBtn:disabled{opacity:.4;cursor:default}._1qM5sW_list{border:1px solid var(--dsh-border,#d0d7de);background:var(--dsh-canvas-bg,#fafbfc);border-radius:8px;flex-direction:column;display:flex}._1qM5sW_row{border-bottom:1px solid var(--dsh-border,#eef1f4);flex-wrap:wrap;align-items:center;gap:10px;padding:6px 12px;font-size:12px;display:flex}._1qM5sW_row:last-child{border-bottom:none}._1qM5sW_name{text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:120px;font-family:ui-monospace,monospace;overflow:hidden}._1qM5sW_status{border-radius:4px;flex-shrink:0;padding:1px 6px;font-size:10px}._1qM5sW_connected{color:#1a7f37;background:#dafbe1}._1qM5sW_reconnecting{color:#7d5e00;background:#fff8c5}._1qM5sW_failed{color:#cf222e;background:#ffebe9}._1qM5sW_stopped{color:#57606a;background:#eaeef2}._1qM5sW_tools{opacity:.7;flex-shrink:0;font-size:11px}._1qM5sW_err{color:#cf222e;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;max-width:240px;font-size:11px;overflow:hidden}._1qM5sW_removeBtn{border:1px solid var(--dsh-border,#d0d7de);cursor:pointer;background:0 0;border-radius:6px;flex-shrink:0;padding:3px 8px;font-size:11px}._1qM5sW_empty{opacity:.6;padding:12px;font-size:12px}._1qM5sW_error{color:#c0392b;font-size:13px}";
-		const tagId = "@deepseek-ai/dsh-contrib-mcp-bridge/BridgeTab.module.css";
+		const tagId = "@qidiai/dsh-contrib-mcp-bridge/BridgeTab.module.css";
 		if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 			const tag = document.createElement("style");
-			tag.dataset.plugin = "@deepseek-ai/dsh-contrib-mcp-bridge";
+			tag.dataset.plugin = "@qidiai/dsh-contrib-mcp-bridge";
 			tag.dataset.pluginCss = tagId;
 			tag.textContent = css;
 			document.head.appendChild(tag);

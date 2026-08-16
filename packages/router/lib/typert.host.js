@@ -61,13 +61,13 @@ const _deepseek_ai_dsh_contrib_router_router_rank_result$schema = z.object({
 })
 
 export const TYPERT = {
-  package: '@deepseek-ai/dsh-contrib-router',
+  package: '@qidiai/dsh-contrib-router',
   face: 'host',
   schemas: [
   ],
   invocations: [
     {
-      id: '@deepseek-ai/dsh-contrib-router#router/profiles',
+      id: '@qidiai/dsh-contrib-router#router/profiles',
       service: 'router',
       namespace: 'router',
       method: 'profiles',
@@ -76,13 +76,13 @@ export const TYPERT = {
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-router/types#RouterSnapshot',
+        typeSymbol: '@qidiai/dsh-contrib-router/types#RouterSnapshot',
         schema: _deepseek_ai_dsh_contrib_router_router_profiles_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/router/src/host/index.ts","line":90,"column":3},
     },
     {
-      id: '@deepseek-ai/dsh-contrib-router#router/rank',
+      id: '@qidiai/dsh-contrib-router#router/rank',
       service: 'router',
       namespace: 'router',
       method: 'rank',
@@ -94,7 +94,7 @@ export const TYPERT = {
           source: 'json',
           codec: {
             mode: 'strict',
-            typeSymbol: '@deepseek-ai/dsh-contrib-router#router/rank:task',
+            typeSymbol: '@qidiai/dsh-contrib-router#router/rank:task',
             schema: _deepseek_ai_dsh_contrib_router_router_rank_parameter_0$schema,
           },
         },
@@ -105,14 +105,14 @@ export const TYPERT = {
           acceptsUndefined: true,
           codec: {
             mode: 'strict',
-            typeSymbol: '@deepseek-ai/dsh-contrib-router#router/rank:candidates',
+            typeSymbol: '@qidiai/dsh-contrib-router#router/rank:candidates',
             schema: _deepseek_ai_dsh_contrib_router_router_rank_parameter_1$schema,
           },
         },
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-router/types#RouterRankResult',
+        typeSymbol: '@qidiai/dsh-contrib-router/types#RouterRankResult',
         schema: _deepseek_ai_dsh_contrib_router_router_rank_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/router/src/host/index.ts","line":103,"column":3},

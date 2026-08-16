@@ -20,6 +20,19 @@ const _deepseek_ai_dsh_contrib_observe_observe_snapshot_result$schema = z.object
   'llmStreams': z.number().readonly(),
   'errorCount': z.number().readonly(),
   'droppedCount': z.number().readonly(),
+  'errorRate': z.number().readonly(),
+  'topTools': z.array(z.object({
+  'name': z.string().readonly(),
+  'calls': z.number().readonly(),
+  'errors': z.number().readonly(),
+  'errorRate': z.number().readonly(),
+})).readonly(),
+  'topModels': z.array(z.object({
+  'name': z.string().readonly(),
+  'streams': z.number().readonly(),
+  'avgDurationMs': z.number().readonly(),
+  'totalChunks': z.number().readonly(),
+})).readonly(),
 }).readonly(),
   'capturedAt': z.string().readonly(),
 })
@@ -29,6 +42,19 @@ const _deepseek_ai_dsh_contrib_observe_observe_stats_result$schema = z.object({
   'llmStreams': z.number().readonly(),
   'errorCount': z.number().readonly(),
   'droppedCount': z.number().readonly(),
+  'errorRate': z.number().readonly(),
+  'topTools': z.array(z.object({
+  'name': z.string().readonly(),
+  'calls': z.number().readonly(),
+  'errors': z.number().readonly(),
+  'errorRate': z.number().readonly(),
+})).readonly(),
+  'topModels': z.array(z.object({
+  'name': z.string().readonly(),
+  'streams': z.number().readonly(),
+  'avgDurationMs': z.number().readonly(),
+  'totalChunks': z.number().readonly(),
+})).readonly(),
 })
 
 export const TYPERT_REMOTE = {
@@ -47,7 +73,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-observe#observe/clear:result',
         schema: _deepseek_ai_dsh_contrib_observe_observe_clear_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":180,"column":3},
+      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":212,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-observe#observe/snapshot',
@@ -62,7 +88,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-observe/types#ObserveSnapshot',
         schema: _deepseek_ai_dsh_contrib_observe_observe_snapshot_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":168,"column":3},
+      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":200,"column":3},
     },
     {
       id: '@qidiai/dsh-contrib-observe#observe/stats',
@@ -77,7 +103,7 @@ export const TYPERT_REMOTE = {
         typeSymbol: '@qidiai/dsh-contrib-observe/types#ObserveStats',
         schema: _deepseek_ai_dsh_contrib_observe_observe_stats_result$schema,
       },
-      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":174,"column":3},
+      sourceLocation: {"file":"packages/contrib/observe/src/host/index.ts","line":206,"column":3},
     },
   ],
 }

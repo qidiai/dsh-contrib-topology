@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import * as mcpClient from "@deepseek-ai/dsh-mcp-client";
 import { installSettingsSection, settingsNamespace } from "@deepseek-ai/dsh-settings";
 import Schema from "@deepseek-ai/schemastery";
@@ -189,6 +190,19 @@ let McpBridgeGateway = (() => {
 		}
 		/** Spawn one mcp-client instance through the cordis plugin registry. */
 		async spawn(server) {
+			if (server.transport === "stdio" && server.command !== void 0) {
+				const probe = server.command.startsWith("\"") ? server.command.slice(1, -1) : server.command;
+				if (!existsSync(probe)) {
+					this.registry.set({
+						config: server,
+						fiber: { dispose: () => void 0 },
+						status: "failed",
+						lastError: `mcp-bridge: stdio command not found: ${probe} — check the path (non-ASCII paths must survive UTF-8 end to end)`,
+						updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+					});
+					return;
+				}
+			}
 			try {
 				const mcpConfig = server.transport === "stdio" ? {
 					transport: "stdio",

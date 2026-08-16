@@ -218,14 +218,24 @@ let OrchestratorGateway = (() => {
 			const startedAt = (/* @__PURE__ */ new Date()).toISOString();
 			const mode = request.mode ?? "parallel";
 			let effective = request;
+			let rankEvidence;
 			if (mode === "select" && request.agents !== void 0 && request.agents.length > 1) try {
 				const router = this.ctx.get("router");
 				if (router?.rank !== void 0) {
-					const ordered = (await router.rank(request.task, request.agents)).ranked.map((entry) => entry.name);
-					if (ordered.length > 0) effective = {
-						...request,
-						agents: ordered
-					};
+					const ranked = await router.rank(request.task, request.agents);
+					const ordered = ranked.ranked.map((entry) => entry.name);
+					if (ordered.length > 0) {
+						effective = {
+							...request,
+							agents: ordered
+						};
+						rankEvidence = ranked.ranked.map((entry) => ({
+							agent: entry.name,
+							score: entry.score,
+							reason: entry.reason,
+							coolingDown: entry.profile.coolingDown
+						}));
+					}
 				}
 			} catch {}
 			const result = await orchestrate(effective, async (agent, task) => {
@@ -282,7 +292,10 @@ let OrchestratorGateway = (() => {
 				durationMs: result.durationMs
 			});
 			if (this.history.length > MAX_HISTORY) this.history.length = MAX_HISTORY;
-			return result;
+			return {
+				...result,
+				...rankEvidence === void 0 ? {} : { ranked: rankEvidence }
+			};
 		}
 		/** Aggregate dispatch counters. */
 		stats() {

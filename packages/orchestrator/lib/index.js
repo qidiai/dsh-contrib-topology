@@ -217,7 +217,18 @@ let OrchestratorGateway = (() => {
 		async dispatch(request) {
 			const startedAt = (/* @__PURE__ */ new Date()).toISOString();
 			const mode = request.mode ?? "parallel";
-			const result = await orchestrate(request, async (agent, task) => {
+			let effective = request;
+			if (mode === "select" && request.agents !== void 0 && request.agents.length > 1) try {
+				const router = this.ctx.get("router");
+				if (router?.rank !== void 0) {
+					const ordered = (await router.rank(request.task, request.agents)).ranked.map((entry) => entry.name);
+					if (ordered.length > 0) effective = {
+						...request,
+						agents: ordered
+					};
+				}
+			} catch {}
+			const result = await orchestrate(effective, async (agent, task) => {
 				this.runs += 1;
 				const started = Date.now();
 				try {
@@ -230,14 +241,16 @@ let OrchestratorGateway = (() => {
 							error: "subagents service unavailable"
 						};
 					}
-					const run = await subagents.start({
-						provider: agent,
+					const agents = this.ctx.get("agents");
+					const parent = request.parentSessionId !== void 0 ? agents?.get?.(request.parentSessionId) : agents?.currentInitiator?.();
+					const run = await subagents.start(agent, {
 						prompt: [{
 							type: "text",
 							text: task
 						}],
-						parent: this.ctx.get("agents"),
-						label: "orchestrator"
+						parent,
+						label: "orchestrator",
+						signal: new AbortController().signal
 					});
 					const ok = run !== void 0 && typeof run === "object";
 					if (ok) this.successes += 1;

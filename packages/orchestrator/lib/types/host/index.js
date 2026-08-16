@@ -88,8 +88,10 @@ let OrchestratorGateway = (() => {
             const mode = request.mode ?? 'parallel';
             // select-mode seam: reorder the candidates by the router's Bayesian rank
             // (best first) before delegating; falls back to the caller's order when the
-            // router service is unavailable or ranking fails.
+            // router service is unavailable or ranking fails. The rank evidence is
+            // carried into the result for select-mode transparency.
             let effective = request;
+            let rankEvidence;
             if (mode === 'select' && request.agents !== undefined && request.agents.length > 1) {
                 try {
                     const router = this.ctx.get('router');
@@ -98,6 +100,12 @@ let OrchestratorGateway = (() => {
                         const ordered = ranked.ranked.map((entry) => entry.name);
                         if (ordered.length > 0) {
                             effective = { ...request, agents: ordered };
+                            rankEvidence = ranked.ranked.map((entry) => ({
+                                agent: entry.name,
+                                score: entry.score,
+                                reason: entry.reason,
+                                coolingDown: entry.profile.coolingDown,
+                            }));
                         }
                     }
                 }
@@ -155,7 +163,7 @@ let OrchestratorGateway = (() => {
             });
             if (this.history.length > MAX_HISTORY)
                 this.history.length = MAX_HISTORY;
-            return result;
+            return { ...result, ...(rankEvidence === undefined ? {} : { ranked: rankEvidence }) };
         }
         /** Aggregate dispatch counters. */
         stats() {

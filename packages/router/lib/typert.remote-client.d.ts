@@ -3,7 +3,7 @@ import type {
   RemoteResult,
   TypertRemoteContribution,
 } from '@deepseek-ai/dsh-typert-protocol'
-import type { RouterRankResult, RouterSnapshot } from '@deepseek-ai/dsh-contrib-router/types'
+import type { RouterRankResult, RouterSnapshot } from '@qidiai/dsh-contrib-router/types'
 
 declare module '@deepseek-ai/dsh-typert-protocol' {
   interface TypertRemoteNamespace$726f75746572 {

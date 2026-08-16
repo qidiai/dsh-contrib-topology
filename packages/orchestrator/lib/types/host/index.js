@@ -86,7 +86,26 @@ let OrchestratorGateway = (() => {
         async dispatch(request) {
             const startedAt = new Date().toISOString();
             const mode = request.mode ?? 'parallel';
-            const result = await orchestrate(request, async (agent, task) => {
+            // select-mode seam: reorder the candidates by the router's Bayesian rank
+            // (best first) before delegating; falls back to the caller's order when the
+            // router service is unavailable or ranking fails.
+            let effective = request;
+            if (mode === 'select' && request.agents !== undefined && request.agents.length > 1) {
+                try {
+                    const router = this.ctx.get('router');
+                    if (router?.rank !== undefined) {
+                        const ranked = await router.rank(request.task, request.agents);
+                        const ordered = ranked.ranked.map((entry) => entry.name);
+                        if (ordered.length > 0) {
+                            effective = { ...request, agents: ordered };
+                        }
+                    }
+                }
+                catch {
+                    // contained: a ranking failure must never break the dispatch
+                }
+            }
+            const result = await orchestrate(effective, async (agent, task) => {
                 this.runs += 1;
                 const started = Date.now();
                 try {
@@ -95,11 +114,19 @@ let OrchestratorGateway = (() => {
                         this.failures += 1;
                         return { ok: false, durationMs: Date.now() - started, error: 'subagents service unavailable' };
                     }
-                    const run = await subagents.start({
-                        provider: agent,
+                    // SubagentRuntime.start(name, request): the provider is the FIRST
+                    // positional arg, not a field of the request; `signal` is required.
+                    // parent resolves from the requested session's live agent, falling
+                    // back to the current initiator when no session id was supplied.
+                    const agents = this.ctx.get('agents');
+                    const parent = request.parentSessionId !== undefined
+                        ? agents?.get?.(request.parentSessionId)
+                        : agents?.currentInitiator?.();
+                    const run = await subagents.start(agent, {
                         prompt: [{ type: 'text', text: task }],
-                        parent: this.ctx.get('agents'),
+                        parent: parent,
                         label: 'orchestrator',
+                        signal: new AbortController().signal,
                     });
                     const ok = run !== undefined && typeof run === 'object';
                     if (ok)

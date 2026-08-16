@@ -43,6 +43,7 @@ var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, 
     done = true;
 };
 import { existsSync } from 'node:fs';
+import { Context } from '@deepseek-ai/cordis';
 import * as mcpClient from '@deepseek-ai/dsh-mcp-client';
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings';
 import Schema from '@deepseek-ai/schemastery';
@@ -93,15 +94,18 @@ let McpBridgeGateway = (() => {
     let _classSuper = TypertRemoteService;
     let _instanceExtraInitializers = [];
     let _snapshot_decorators;
+    let _probe_decorators;
     let _addServer_decorators;
     let _removeServer_decorators;
     return class McpBridgeGateway extends _classSuper {
         static {
             const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
             _snapshot_decorators = [Remote('snapshot')];
+            _probe_decorators = [Remote('probe')];
             _addServer_decorators = [Remote('addServer')];
             _removeServer_decorators = [Remote('removeServer')];
             __esDecorate(this, null, _snapshot_decorators, { kind: "method", name: "snapshot", static: false, private: false, access: { has: obj => "snapshot" in obj, get: obj => obj.snapshot }, metadata: _metadata }, null, _instanceExtraInitializers);
+            __esDecorate(this, null, _probe_decorators, { kind: "method", name: "probe", static: false, private: false, access: { has: obj => "probe" in obj, get: obj => obj.probe }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(this, null, _addServer_decorators, { kind: "method", name: "addServer", static: false, private: false, access: { has: obj => "addServer" in obj, get: obj => obj.addServer }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(this, null, _removeServer_decorators, { kind: "method", name: "removeServer", static: false, private: false, access: { has: obj => "removeServer" in obj, get: obj => obj.removeServer }, metadata: _metadata }, null, _instanceExtraInitializers);
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
@@ -110,11 +114,6 @@ let McpBridgeGateway = (() => {
         config = DEFAULT_CONFIG;
         constructor(ctx) {
             super(ctx, 'mcp-bridge');
-            // Make the `tools` service resolvable on THIS context's props table so a
-            // dynamically ctx.plugin()-mounted mcp-client instance can access
-            // `ctx.tools` (proxy-trap resolution reads the local reflect.props; a bare
-            // inherited-but-unregistered service would throw "without inject").
-            this.ensureTools();
             // Hot-reload seam: the settings section drives spawn/dispose diffs.
             installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
                 setSource: (source) => {
@@ -125,19 +124,6 @@ let McpBridgeGateway = (() => {
                     void this.applyConfig();
                 },
             });
-        }
-        /** Re-register the `tools` service locally when it is available upstream. */
-        ensureTools() {
-            try {
-                const tools = this.ctx.get('tools');
-                if (tools !== undefined) {
-                    this.ctx.provide('tools', tools);
-                }
-            }
-            catch {
-                // contained by design: if 'tools' is already registered or unavailable,
-                // mcp-client instances report a clear failure instead of crashing.
-            }
         }
         /** Diff the resolved config against live instances; spawn/remove as needed. */
         async applyConfig() {
@@ -180,7 +166,18 @@ let McpBridgeGateway = (() => {
                 const mcpConfig = server.transport === 'stdio'
                     ? { transport: 'stdio', serverName: server.serverName, command: server.command ?? '', args: [...(server.args ?? [])], failOnStartupError: true }
                     : { transport: 'streamable-http', serverName: server.serverName, url: server.url ?? '', failOnStartupError: true };
-                const fiber = await this.ctx.plugin(mcpClient, mcpConfig);
+                // Mount each mcp-client in a FRESH root context that explicitly carries
+                // the `tools` service. `ctx.plugin()` on this gateway's own context
+                // creates a fiber whose inject chain cannot resolve `ctx.tools` inside
+                // the host realm ("cannot get property tools without inject"); a fresh
+                // Context with `tools` provided directly resolves it like the top-level
+                // cordis.yml rows do. Each server owns its context, so dispose is clean.
+                const child = new Context();
+                const tools = this.ctx.get('tools');
+                if (tools !== undefined) {
+                    child.provide('tools', tools);
+                }
+                const fiber = await child.plugin(mcpClient, mcpConfig);
                 this.registry.set({
                     config: server,
                     fiber,
@@ -211,13 +208,51 @@ let McpBridgeGateway = (() => {
             }));
             return { servers, capturedAt: now };
         }
+        /** Diagnostic: how visible is the `tools` service from this context? */
+        probe() {
+            const props = this.ctx.reflect?.props;
+            let provideOutcome = 'not attempted';
+            try {
+                const tools = this.ctx.get('tools');
+                if (tools !== undefined) {
+                    this.ctx.provide('tools', tools);
+                    provideOutcome = 'provided';
+                }
+                else {
+                    provideOutcome = 'no upstream tools';
+                }
+            }
+            catch (e) {
+                provideOutcome = `provide threw: ${e instanceof Error ? e.message : String(e)}`;
+            }
+            const post = this.ctx.reflect?.props;
+            const child = this.ctx.extend();
+            let childTools = 'unknown';
+            try {
+                childTools = typeof child.get('tools');
+            }
+            catch (e) {
+                childTools = `threw: ${e instanceof Error ? e.message : String(e)}`;
+            }
+            return {
+                hasToolsIn: 'tools' in this.ctx,
+                getTools: typeof this.ctx.get('tools'),
+                propsKeys: Object.keys(props ?? {}).slice(0, 20),
+                hasToolsProp: props !== undefined && 'tools' in props,
+                provideOutcome,
+                postHasToolsProp: post !== undefined && 'tools' in post,
+                fiberRuntime: typeof this.ctx.fiber?.runtime,
+                extendChildGetTools: childTools,
+                extendChildHasToolsIn: 'tools' in child,
+            };
+        }
         /** Best-effort per-server tool counts from the tools service. */
         toolCounts() {
             const counts = new Map();
             try {
                 const tools = this.ctx.get('tools');
-                if (tools?.list !== undefined) {
-                    for (const tool of tools.list()) {
+                if (tools?.schemas !== undefined) {
+                    for (const tool of tools.schemas()) {
                         const match = typeof tool.name === 'string' ? /^mcp__([^_]+)__/.exec(tool.name) : null;
                         if (match !== null && match[1] !== undefined) {
                             counts.set(match[1], (counts.get(match[1]) ?? 0) + 1);

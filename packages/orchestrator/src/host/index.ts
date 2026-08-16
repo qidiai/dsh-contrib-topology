@@ -16,6 +16,7 @@ import type {} from 'zod'
 import { orchestrate } from '../engine.ts'
 import type {
   OrchestratorHistoryEntry,
+  OrchestratorRankEvidence,
   OrchestratorRequest,
   OrchestratorResult,
   OrchestratorSnapshot,
@@ -57,22 +58,69 @@ export class OrchestratorGateway extends TypertRemoteService {
   async dispatch(request: OrchestratorRequest): Promise<OrchestratorResult> {
     const startedAt = new Date().toISOString()
     const mode = request.mode ?? 'parallel'
+    // Ordered-attempt seam (select / sequential / cascade): reorder the
+    // candidates by the router's Bayesian rank (best first) before delegating;
+    // falls back to the caller's order when the router service is unavailable
+    // or ranking fails. The rank evidence is carried into the result for
+    // decision transparency in every ordered mode.
+    let effective = request
+    let rankEvidence: OrchestratorRankEvidence[] | undefined
+    const orderedModes = mode === 'select' || mode === 'sequential' || mode === 'cascade'
+    if (orderedModes && request.agents !== undefined && request.agents.length > 1) {
+      try {
+        const router = this.ctx.get('router') as
+          | { rank?: (task: string, candidates?: readonly string[]) => Promise<{ ranked: readonly {
+            name: string
+            score: number
+            reason: string
+            profile: { coolingDown: boolean }
+          }[] }> }
+          | undefined
+        if (router?.rank !== undefined) {
+          const ranked = await router.rank(request.task, request.agents)
+          const ordered = ranked.ranked.map((entry) => entry.name)
+          if (ordered.length > 0) {
+            effective = { ...request, agents: ordered }
+            rankEvidence = ranked.ranked.map((entry) => ({
+              agent: entry.name,
+              score: entry.score,
+              reason: entry.reason,
+              coolingDown: entry.profile.coolingDown,
+            }))
+          }
+        }
+      } catch {
+        // contained: a ranking failure must never break the dispatch
+      }
+    }
     const result = await orchestrate(
-      request,
+      effective,
       async (agent, task) => {
         this.runs += 1
         const started = Date.now()
         try {
-          const subagents = this.ctx.get('subagents') as { start: (spec: unknown) => Promise<unknown> } | undefined
+          const subagents = this.ctx.get('subagents') as
+            | { start: (name: string, request: unknown) => Promise<unknown> }
+            | undefined
           if (subagents === undefined) {
             this.failures += 1
             return { ok: false, durationMs: Date.now() - started, error: 'subagents service unavailable' }
           }
-          const run = await subagents.start({
-            provider: agent,
+          // SubagentRuntime.start(name, request): the provider is the FIRST
+          // positional arg, not a field of the request; `signal` is required.
+          // parent resolves from the requested session's live agent, falling
+          // back to the current initiator when no session id was supplied.
+          const agents = this.ctx.get('agents') as
+            | { get?: (id: string) => unknown; currentInitiator?: () => unknown }
+            | undefined
+          const parent = request.parentSessionId !== undefined
+            ? agents?.get?.(request.parentSessionId)
+            : agents?.currentInitiator?.()
+          const run = await subagents.start(agent, {
             prompt: [{ type: 'text', text: task }],
-            parent: this.ctx.get('agents') as unknown,
+            parent: parent as never,
             label: 'orchestrator',
+            signal: new AbortController().signal,
           })
           const ok = run !== undefined && typeof run === 'object'
           if (ok) this.successes += 1
@@ -100,7 +148,7 @@ export class OrchestratorGateway extends TypertRemoteService {
       durationMs: result.durationMs,
     })
     if (this.history.length > MAX_HISTORY) this.history.length = MAX_HISTORY
-    return result
+    return { ...result, ...(rankEvidence === undefined ? {} : { ranked: rankEvidence }) }
   }
 
   /** Aggregate dispatch counters. */

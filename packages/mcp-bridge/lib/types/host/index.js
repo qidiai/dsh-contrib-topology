@@ -115,9 +115,13 @@ let McpBridgeGateway = (() => {
         async spawn(server) {
             try {
                 // Shape the simplified bridge config into mcp-client's own Config union.
+                // failOnStartupError: true makes the INITIAL connect/sync failure reject
+                // the fiber (rather than being swallowed into the reconnect loop), so
+                // `status` reflects the real connection lifecycle — 'connected' only
+                // after the first tool sync, 'failed' with the actual error otherwise.
                 const mcpConfig = server.transport === 'stdio'
-                    ? { transport: 'stdio', serverName: server.serverName, command: server.command ?? '', args: [...(server.args ?? [])] }
-                    : { transport: 'streamable-http', serverName: server.serverName, url: server.url ?? '' };
+                    ? { transport: 'stdio', serverName: server.serverName, command: server.command ?? '', args: [...(server.args ?? [])], failOnStartupError: true }
+                    : { transport: 'streamable-http', serverName: server.serverName, url: server.url ?? '', failOnStartupError: true };
                 const fiber = await this.ctx.plugin(mcpClient, mcpConfig);
                 this.registry.set({
                     config: server,
@@ -170,9 +174,13 @@ let McpBridgeGateway = (() => {
         }
         /** Add one server at runtime (settings diff drives the actual spawn). */
         async addServer(server) {
-            if (this.registry.has(server.serverName)) {
+            const existing = this.registry.get(server.serverName);
+            if (existing !== undefined && existing.status !== 'failed') {
                 throw new Error(`mcp-bridge: serverName "${server.serverName}" already managed`);
             }
+            // A failed placeholder must not block retrying the same serverName.
+            if (existing !== undefined)
+                this.registry.remove(server.serverName);
             const next = { servers: [...this.config.servers.filter((s) => s.serverName !== server.serverName), server] };
             this.config = next;
             await this.applyConfig();

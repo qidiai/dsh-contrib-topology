@@ -9,6 +9,7 @@
  * mcp-client.
  */
 
+import { existsSync } from 'node:fs'
 import type { Context } from '@deepseek-ai/cordis'
 import * as mcpClient from '@deepseek-ai/dsh-mcp-client'
 import { installSettingsSection, settingsNamespace } from '@deepseek-ai/dsh-settings'
@@ -76,11 +77,32 @@ export class McpBridgeGateway extends TypertRemoteService {
 
   /** Spawn one mcp-client instance through the cordis plugin registry. */
   private async spawn(server: McpServerConfig): Promise<void> {
+    // Preflight: a stdio command that does not exist (e.g. a path mangled to
+    // `????` by a non-UTF-8 input chain) would make the child die instantly
+    // with a bare MODULE_NOT_FOUND. Fail fast with an actionable error so the
+    // Bridge tab shows why instead of a silent no-op.
+    if (server.transport === 'stdio' && server.command !== undefined) {
+      const probe = server.command.startsWith('"') ? server.command.slice(1, -1) : server.command
+      if (!existsSync(probe)) {
+        this.registry.set({
+          config: server,
+          fiber: { dispose: () => undefined },
+          status: 'failed',
+          lastError: `mcp-bridge: stdio command not found: ${probe} — check the path (non-ASCII paths must survive UTF-8 end to end)`,
+          updatedAt: new Date().toISOString(),
+        })
+        return
+      }
+    }
     try {
       // Shape the simplified bridge config into mcp-client's own Config union.
+      // failOnStartupError: true makes the INITIAL connect/sync failure reject
+      // the fiber (rather than being swallowed into the reconnect loop), so
+      // `status` reflects the real connection lifecycle — 'connected' only
+      // after the first tool sync, 'failed' with the actual error otherwise.
       const mcpConfig = server.transport === 'stdio'
-        ? { transport: 'stdio', serverName: server.serverName, command: server.command ?? '', args: [...(server.args ?? [])] }
-        : { transport: 'streamable-http', serverName: server.serverName, url: server.url ?? '' }
+        ? { transport: 'stdio', serverName: server.serverName, command: server.command ?? '', args: [...(server.args ?? [])], failOnStartupError: true }
+        : { transport: 'streamable-http', serverName: server.serverName, url: server.url ?? '', failOnStartupError: true }
       const fiber = await this.ctx.plugin(mcpClient, mcpConfig as unknown as never)
       this.registry.set({
         config: server,
@@ -136,9 +158,12 @@ export class McpBridgeGateway extends TypertRemoteService {
   /** Add one server at runtime (settings diff drives the actual spawn). */
   @Remote('addServer')
   async addServer(server: McpServerConfig): Promise<BridgeSnapshot> {
-    if (this.registry.has(server.serverName)) {
+    const existing = this.registry.get(server.serverName)
+    if (existing !== undefined && existing.status !== 'failed') {
       throw new Error(`mcp-bridge: serverName "${server.serverName}" already managed`)
     }
+    // A failed placeholder must not block retrying the same serverName.
+    if (existing !== undefined) this.registry.remove(server.serverName)
     const next: McpBridgeConfig = { servers: [...this.config.servers.filter((s) => s.serverName !== server.serverName), server] }
     this.config = next
     await this.applyConfig()

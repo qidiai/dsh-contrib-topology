@@ -132,9 +132,44 @@ let TopologyGateway = (() => {
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
         }
         static inject = ['loader'];
+        /** Live subagent delegations: runId → { provider, startedAt, outcome }. */
+        delegations = (__runInitializers(this, _instanceExtraInitializers), new Map());
+        runStarts = new Map();
         constructor(ctx) {
             super(ctx, 'topology');
-            __runInitializers(this, _instanceExtraInitializers);
+            // Track runtime delegations so the graph can show the subagent tree.
+            ctx.on('subagent/start', (info) => {
+                this.runStarts.set(info.runId, Date.now());
+                this.delegations.set(info.runId, { provider: info.provider, startedAt: Date.now(), outcome: 'running' });
+            });
+            ctx.on('subagent/end', (info) => {
+                const startedAt = this.runStarts.get(info.runId);
+                this.runStarts.delete(info.runId);
+                this.delegations.set(info.runId, {
+                    provider: info.provider,
+                    startedAt: startedAt ?? Date.now(),
+                    outcome: info.stopReason === 'completed' ? 'success' : 'error',
+                });
+            });
+        }
+        /** Live MCP servers, derived from `mcp__<serverName>__*` tool names. */
+        mcpServers() {
+            const servers = new Map();
+            try {
+                const tools = this.ctx.get('tools');
+                if (tools?.schemas !== undefined) {
+                    for (const tool of tools.schemas()) {
+                        const match = typeof tool.name === 'string' ? /^mcp__([^_]+)__/.exec(tool.name) : null;
+                        if (match !== null && match[1] !== undefined) {
+                            servers.set(match[1], (servers.get(match[1]) ?? 0) + 1);
+                        }
+                    }
+                }
+            }
+            catch {
+                // contained by design
+            }
+            return servers;
         }
         /**
          * Read the Loader directly on every call — no second cache to keep in
@@ -182,6 +217,31 @@ let TopologyGateway = (() => {
                     kind: 'service',
                     service: { id: `service:${key}`, name: key, consumerCount: count },
                 });
+            }
+            // Subagent tree: each live delegation becomes a node, dispatched from the
+            // orchestrator plugin (id 'orchestrator' when present) or the provider as
+            // a root delegation.
+            for (const [runId, d] of this.delegations) {
+                nodes.push({
+                    kind: 'subagent',
+                    subagent: {
+                        id: `subagent:${runId}`,
+                        provider: d.provider,
+                        outcome: d.outcome,
+                        ...(d.outcome === 'running' ? {} : { durationMs: Date.now() - d.startedAt }),
+                    },
+                });
+                const from = plugins.some((p) => p.id === 'orchestrator') ? 'orchestrator' : d.provider;
+                edges.push({ from, to: `subagent:${runId}`, kind: 'dispatch' });
+            }
+            // MCP servers: one node per live mcp__ server, attached to mcp-bridge.
+            for (const [serverName, toolCount] of this.mcpServers()) {
+                nodes.push({
+                    kind: 'mcp',
+                    mcp: { id: `mcp:${serverName}`, serverName, toolCount },
+                });
+                const from = plugins.some((p) => p.id === 'mcp-bridge') ? 'mcp-bridge' : 'mcp:root';
+                edges.push({ from, to: `mcp:${serverName}`, kind: 'provides-mcp' });
             }
             return { nodes, edges, capturedAt: new Date().toISOString() };
         }

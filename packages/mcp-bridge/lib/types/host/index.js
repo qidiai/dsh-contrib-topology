@@ -115,10 +115,14 @@ let McpBridgeGateway = (() => {
         constructor(ctx) {
             super(ctx, 'mcp-bridge');
             // Hot-reload seam: the settings section drives spawn/dispose diffs.
+            // setSource only stores the resolved config; onChange (fired right after
+            // attach and on every committed change) is the single applyConfig trigger.
+            // This avoids double-spawning a persisted server at attach: the previous
+            // fire-and-forget in both hooks raced two applyConfig() runs, and the
+            // second spawn failed with 'tool ... is already registered'.
             installSettingsSection(ctx, NS, Config, DEFAULT_CONFIG, {
                 setSource: (source) => {
                     this.config = source();
-                    void this.applyConfig();
                 },
                 onChange: () => {
                     void this.applyConfig();
@@ -265,7 +269,7 @@ let McpBridgeGateway = (() => {
             }
             return counts;
         }
-        /** Add one server at runtime (settings diff drives the actual spawn). */
+        /** Add one server at runtime (persisted via the ai-bridge-mcp settings). */
         async addServer(server) {
             const existing = this.registry.get(server.serverName);
             if (existing !== undefined && existing.status !== 'failed') {
@@ -275,17 +279,32 @@ let McpBridgeGateway = (() => {
             if (existing !== undefined)
                 this.registry.remove(server.serverName);
             const next = { servers: [...this.config.servers.filter((s) => s.serverName !== server.serverName), server] };
-            this.config = next;
-            await this.applyConfig();
+            await this.persistConfig(next);
             return this.snapshot();
         }
-        /** Remove one server at runtime. */
-        removeServer(serverName) {
-            this.config = {
-                servers: this.config.servers.filter((s) => s.serverName !== serverName),
-            };
-            this.registry.remove(serverName);
+        /** Remove one server at runtime (persisted via the ai-bridge-mcp settings). */
+        async removeServer(serverName) {
+            const next = { servers: this.config.servers.filter((s) => s.serverName !== serverName) };
+            await this.persistConfig(next);
             return this.snapshot();
+        }
+        /**
+         * Persist a full config through the `ai-bridge-mcp` settings channel so a
+         * restart re-attaches the servers, then apply the live diff. Falls back to
+         * in-memory-only when the settings service is unavailable.
+         */
+        async persistConfig(next) {
+            try {
+                const settings = this.ctx.get('settings');
+                if (settings?.update !== undefined) {
+                    await settings.update(NS, { servers: next.servers });
+                }
+            }
+            catch {
+                // contained: a persistence failure must never break the live update
+            }
+            this.config = next;
+            await this.applyConfig();
         }
     };
 })();

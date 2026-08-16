@@ -2,26 +2,66 @@
 import { z } from 'zod'
 
 const _deepseek_ai_dsh_contrib_dashboard_dashboard_status_result$schema = z.object({
-  'topology': z.object({
-  'ok': z.boolean(),
-  'detail': z.string(),
-}).readonly(),
-  'observe': z.object({
-  'ok': z.boolean(),
-  'detail': z.string(),
-}).readonly(),
-  'router': z.object({
-  'ok': z.boolean(),
-  'detail': z.string(),
-}).readonly(),
-  'orchestrator': z.object({
-  'ok': z.boolean(),
-  'detail': z.string(),
-}).readonly(),
-  'mcpBridge': z.object({
-  'ok': z.boolean(),
-  'detail': z.string(),
-}).readonly(),
+  'topology': z.intersection(z.object({
+  'ok': z.boolean().readonly(),
+  'detail': z.string().readonly(),
+}), z.object({
+  'summary': z.object({
+  'plugins': z.number().readonly(),
+  'services': z.number().readonly(),
+  'subagents': z.number().readonly(),
+  'mcps': z.number().readonly(),
+  'edges': z.number().readonly(),
+}).readonly().optional(),
+})).readonly(),
+  'observe': z.intersection(z.object({
+  'ok': z.boolean().readonly(),
+  'detail': z.string().readonly(),
+}), z.object({
+  'events': z.array(z.object({
+  'kind': z.union([z.literal("tool.call"), z.literal("llm.stream"), z.literal("subagent.dispatch")]).readonly(),
+  'name': z.string().readonly(),
+  'outcome': z.union([z.literal("success"), z.literal("error"), z.literal("cancelled")]).readonly(),
+  'source': z.union([z.literal("builtin"), z.literal("mcp")]).readonly(),
+  'durationMs': z.number().readonly().optional(),
+})).readonly().optional(),
+})).readonly(),
+  'router': z.intersection(z.object({
+  'ok': z.boolean().readonly(),
+  'detail': z.string().readonly(),
+}), z.object({
+  'providers': z.array(z.object({
+  'name': z.string().readonly(),
+  'calls': z.number().readonly(),
+  'successes': z.number().readonly(),
+  'successScore': z.number().readonly(),
+  'confidence': z.number().readonly(),
+  'coolingDown': z.boolean().readonly(),
+})).readonly().optional(),
+})).readonly(),
+  'orchestrator': z.intersection(z.object({
+  'ok': z.boolean().readonly(),
+  'detail': z.string().readonly(),
+}), z.object({
+  'history': z.array(z.object({
+  'mode': z.string().readonly(),
+  'task': z.string().readonly(),
+  'winner': z.string().readonly().optional(),
+  'allOk': z.boolean().readonly(),
+  'durationMs': z.number().readonly(),
+})).readonly().optional(),
+})).readonly(),
+  'mcpBridge': z.intersection(z.object({
+  'ok': z.boolean().readonly(),
+  'detail': z.string().readonly(),
+}), z.object({
+  'servers': z.array(z.object({
+  'serverName': z.string().readonly(),
+  'status': z.string().readonly(),
+  'toolCount': z.number().readonly(),
+  'lastError': z.string().readonly().optional(),
+})).readonly().optional(),
+})).readonly(),
   'capturedAt': z.string().readonly(),
 })
 

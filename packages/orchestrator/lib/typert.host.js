@@ -50,13 +50,13 @@ const _deepseek_ai_dsh_contrib_orchestrator_orchestrator_stats_result$schema = z
 })
 
 export const TYPERT = {
-  package: '@deepseek-ai/dsh-contrib-orchestrator',
+  package: '@qidiai/dsh-contrib-orchestrator',
   face: 'host',
   schemas: [
   ],
   invocations: [
     {
-      id: '@deepseek-ai/dsh-contrib-orchestrator#orchestrator/dispatch',
+      id: '@qidiai/dsh-contrib-orchestrator#orchestrator/dispatch',
       service: 'orchestrator',
       namespace: 'orchestrator',
       method: 'dispatch',
@@ -68,20 +68,20 @@ export const TYPERT = {
           source: 'json',
           codec: {
             mode: 'strict',
-            typeSymbol: '@deepseek-ai/dsh-contrib-orchestrator/types#OrchestratorRequest',
+            typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorRequest',
             schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_dispatch_parameter_0$schema,
           },
         },
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-orchestrator/types#OrchestratorResult',
+        typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorResult',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_dispatch_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":57,"column":9},
     },
     {
-      id: '@deepseek-ai/dsh-contrib-orchestrator#orchestrator/snapshot',
+      id: '@qidiai/dsh-contrib-orchestrator#orchestrator/snapshot',
       service: 'orchestrator',
       namespace: 'orchestrator',
       method: 'snapshot',
@@ -90,13 +90,13 @@ export const TYPERT = {
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-orchestrator/types#OrchestratorSnapshot',
+        typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorSnapshot',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_snapshot_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":120,"column":3},
     },
     {
-      id: '@deepseek-ai/dsh-contrib-orchestrator#orchestrator/stats',
+      id: '@qidiai/dsh-contrib-orchestrator#orchestrator/stats',
       service: 'orchestrator',
       namespace: 'orchestrator',
       method: 'stats',
@@ -105,7 +105,7 @@ export const TYPERT = {
       ],
       result: {
         mode: 'strict',
-        typeSymbol: '@deepseek-ai/dsh-contrib-orchestrator/types#OrchestratorStats',
+        typeSymbol: '@qidiai/dsh-contrib-orchestrator/types#OrchestratorStats',
         schema: _deepseek_ai_dsh_contrib_orchestrator_orchestrator_stats_result$schema,
       },
       sourceLocation: {"file":"packages/contrib/orchestrator/src/host/index.ts","line":108,"column":3},

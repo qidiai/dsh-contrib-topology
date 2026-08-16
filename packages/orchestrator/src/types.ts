@@ -50,6 +50,19 @@ export interface OrchestratorResult {
   readonly allOk: boolean
   readonly startedAt: string
   readonly durationMs: number
+  /**
+   * Router ranking evidence attached when `mode === 'select'` and the
+   * router seam ran — candidate order, score, and reason for the decision.
+   */
+  readonly ranked?: readonly OrchestratorRankEvidence[]
+}
+
+/** One ranked candidate's decision evidence (select-mode transparency). */
+export interface OrchestratorRankEvidence {
+  readonly agent: string
+  readonly score: number
+  readonly reason: string
+  readonly coolingDown: boolean
 }
 
 /** Aggregate dispatch counters (cheap polling view). */

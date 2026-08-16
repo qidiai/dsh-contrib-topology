@@ -52,15 +52,18 @@ let OrchestratorGateway = (() => {
     let _dispatch_decorators;
     let _stats_decorators;
     let _snapshot_decorators;
+    let _probe_decorators;
     return class OrchestratorGateway extends _classSuper {
         static {
             const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
             _dispatch_decorators = [Remote('dispatch')];
             _stats_decorators = [Remote('stats')];
             _snapshot_decorators = [Remote('snapshot')];
+            _probe_decorators = [Remote('probe')];
             __esDecorate(this, null, _dispatch_decorators, { kind: "method", name: "dispatch", static: false, private: false, access: { has: obj => "dispatch" in obj, get: obj => obj.dispatch }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(this, null, _stats_decorators, { kind: "method", name: "stats", static: false, private: false, access: { has: obj => "stats" in obj, get: obj => obj.stats }, metadata: _metadata }, null, _instanceExtraInitializers);
             __esDecorate(this, null, _snapshot_decorators, { kind: "method", name: "snapshot", static: false, private: false, access: { has: obj => "snapshot" in obj, get: obj => obj.snapshot }, metadata: _metadata }, null, _instanceExtraInitializers);
+            __esDecorate(this, null, _probe_decorators, { kind: "method", name: "probe", static: false, private: false, access: { has: obj => "probe" in obj, get: obj => obj.probe }, metadata: _metadata }, null, _instanceExtraInitializers);
             if (_metadata) Object.defineProperty(this, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
         }
         dispatches = (__runInitializers(this, _instanceExtraInitializers), 0);
@@ -128,10 +131,21 @@ let OrchestratorGateway = (() => {
                     // positional arg, not a field of the request; `signal` is required.
                     // parent resolves from the requested session's live agent, falling
                     // back to the current initiator when no session id was supplied.
+                    // When neither yields an Agent (e.g. a Remote-triggered dispatch
+                    // outside any initiator boundary), fail with a clear error instead of
+                    // letting the provider crash on `parent.options`.
                     const agents = this.ctx.get('agents');
                     const parent = request.parentSessionId !== undefined
                         ? agents?.get?.(request.parentSessionId)
                         : agents?.currentInitiator?.();
+                    if (parent === undefined) {
+                        this.failures += 1;
+                        return {
+                            ok: false,
+                            durationMs: Date.now() - started,
+                            error: 'parent agent unavailable: dispatch needs a live session (pass parentSessionId) or an initiator boundary',
+                        };
+                    }
                     const run = await subagents.start(agent, {
                         prompt: [{ type: 'text', text: task }],
                         parent: parent,
@@ -183,6 +197,20 @@ let OrchestratorGateway = (() => {
                 stats: this.stats(),
                 history: [...this.history],
                 capturedAt: new Date().toISOString(),
+            };
+        }
+        /** Diagnostic: service visibility on this context (agents/subagents realm probe). */
+        probe() {
+            const agents = this.ctx.get('agents');
+            let hasInitiator = false;
+            try {
+                hasInitiator = agents?.currentInitiator?.() !== undefined;
+            }
+            catch { /* contained */ }
+            return {
+                agents: agents === undefined ? 'undefined' : typeof agents,
+                subagents: this.ctx.get('subagents') === undefined ? 'undefined' : typeof this.ctx.get('subagents'),
+                hasInitiator,
             };
         }
     };

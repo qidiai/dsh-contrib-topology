@@ -16,6 +16,14 @@ export declare const zh: {
     'card.router': string;
     'card.orchestrator': string;
     'card.mcpBridge': string;
+    'summary.plugins': string;
+    'summary.services': string;
+    'summary.subagents': string;
+    'summary.mcp': string;
+    'summary.edges': string;
+    'topology.goto': string;
+    'body.noData': string;
+    'rank.cooling': string;
 };
 /** Dashboard locale key union. */
 export type DashboardLocaleKey = keyof typeof zh;
@@ -34,5 +42,13 @@ export declare const en: {
     'card.router': string;
     'card.orchestrator': string;
     'card.mcpBridge': string;
+    'summary.plugins': string;
+    'summary.services': string;
+    'summary.subagents': string;
+    'summary.mcp': string;
+    'summary.edges': string;
+    'topology.goto': string;
+    'body.noData': string;
+    'rank.cooling': string;
 };
 //# sourceMappingURL=locales.d.ts.map
